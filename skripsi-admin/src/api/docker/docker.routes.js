@@ -87,8 +87,15 @@ router.post('/createContainer', isAuthenticated, async (req, res, next) => {
             gpuFlag = `--gpus "${gpus}"`;
         }
         
-        const command = `docker run -d --dns 172.17.9.25 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
-        // const command = `docker run -d --label user=${user.userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
+        // DNS CONFIGURATION - CHOOSE ONE BASED ON YOUR ENVIRONMENT
+        // For PRODUCTION: Use the commented line with --dns 172.17.9.25 (internal DNS)
+        // For DEVELOPMENT: Use the active line with --dns 8.8.8.8 --dns 8.8.4.4 (Google DNS)
+        
+        // PRODUCTION COMMAND (with internal DNS 172.17.9.25):
+        // const command = `docker run -d --dns 172.17.9.25 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
+        
+        // DEVELOPMENT COMMAND (with Google Public DNS):
+        const command = `docker run -d --dns 8.8.8.8 --dns 8.8.4.4 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
 
         const execPromise = new Promise((resolve, reject) => {
             exec(command, (error, stdout, stderr) => {
@@ -197,9 +204,15 @@ router.post('/container/:containerName/reset', isAuthenticated, async (req, res,
             gpuFlag = `--gpus "${gpus}"`;
         }
 
-        //remove the container and create it again with the field from container data before
-        const command = `docker rm -f ${containerName} && docker run -d --dns 172.17.9.25 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
-        // const command = `docker rm -f ${containerName} && docker run -d --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
+        // DNS CONFIGURATION - CHOOSE ONE BASED ON YOUR ENVIRONMENT
+        // For PRODUCTION: Use the commented line with --dns 172.17.9.25 (internal DNS)
+        // For DEVELOPMENT: Use the active line with --dns 8.8.8.8 --dns 8.8.4.4 (Google DNS)
+        
+        // PRODUCTION COMMAND (with internal DNS 172.17.9.25):
+        // const command = `docker rm -f ${containerName} && docker run -d --dns 172.17.9.25 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
+        
+        // DEVELOPMENT COMMAND (with Google Public DNS):
+        const command = `docker rm -f ${containerName} && docker run -d --dns 8.8.8.8 --dns 8.8.4.4 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
 
         const execPromise = new Promise((resolve, reject) => {
             exec(command, (error, stdout, stderr) => {
@@ -595,7 +608,8 @@ router.post('/container/:containerName/restart', isAuthenticated, async (req, re
         }
         //Restart container by name using docker command
         let stdout;  // Declare stdout here
-        const command = `docker restart ${containerName} && docker exec ${containerName} service ssh start`;
+        // First restart the container, then check if SSH is installed and start it if available
+        const command = `docker restart ${containerName} && docker exec ${containerName} bash -c "which sshd && service ssh start || echo 'SSH not available'"`;
         const execPromise = new Promise((resolve, reject) => {
             exec(command, (error, _stdout, stderr) => {
                 if (error) {
@@ -737,7 +751,8 @@ router.post('/container/:containerName/start', isAuthenticated, async (req, res,
 
         //Start container by name using docker command
         let stdout;  // Declare stdout here
-        const command = `docker start ${containerName} && docker exec ${containerName} service ssh start`;
+        // First start the container, then check if SSH is installed and start it if available
+        const command = `docker start ${containerName} && docker exec ${containerName} bash -c "which sshd && service ssh start || echo 'SSH not available'"`;
         const execPromise = new Promise((resolve, reject) => {
             exec(command, (error, _stdout, stderr) => {
                 if (error) {
