@@ -23,6 +23,7 @@ export default function AdminContainersPage() {
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [loadingContainers, setLoadingContainers] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
   const { data: containers, isLoading } = useQuery({
@@ -42,12 +43,20 @@ export default function AdminContainersPage() {
   });
 
   const startMutation = useMutation({
-    mutationFn: (containerName: string) => containerApi.startContainer(containerName),
-    onSuccess: () => {
+    mutationFn: (containerName: string) => {
+      setLoadingContainers(prev => new Set(Array.from(prev).concat(containerName)));
+      return containerApi.startContainer(containerName);
+    },
+    onSuccess: (_, containerName) => {
       toast.success('Container started successfully');
       queryClient.invalidateQueries({ queryKey: ['allContainers'] });
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
     },
-    onError: (error: any) => {
+    onError: (error: any, containerName) => {
       const errorMessage = error.response?.data?.message || error.message || '';
       if (errorMessage.includes('No such container')) {
         toast.error('Container does not exist in Docker. This is an orphaned database record that should be deleted.');
@@ -56,21 +65,39 @@ export default function AdminContainersPage() {
       } else {
         toast.error(errorMessage || 'Failed to start container');
       }
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
     },
   });
 
   const stopMutation = useMutation({
-    mutationFn: (containerName: string) => containerApi.stopContainer(containerName),
-    onSuccess: () => {
+    mutationFn: (containerName: string) => {
+      setLoadingContainers(prev => new Set(Array.from(prev).concat(containerName)));
+      return containerApi.stopContainer(containerName);
+    },
+    onSuccess: (_, containerName) => {
       toast.success('Container stopped successfully');
       queryClient.invalidateQueries({ queryKey: ['allContainers'] });
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
     },
-    onError: (error: any) => {
+    onError: (error: any, containerName) => {
       if (error.response?.data?.message?.includes('No such container')) {
         toast.error('Container not found in Docker. Consider removing this orphaned record.');
       } else {
         toast.error(error.response?.data?.message || 'Failed to stop container');
       }
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
     },
   });
 
@@ -226,17 +253,35 @@ export default function AdminContainersPage() {
                         </button>
                         <button
                           onClick={() => stopMutation.mutate(container.name)}
-                          className="text-yellow-600 hover:text-yellow-900"
+                          disabled={loadingContainers.has(container.name)}
+                          className={`${
+                            loadingContainers.has(container.name)
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-yellow-600 hover:text-yellow-900'
+                          }`}
                           title="Stop Container"
                         >
-                          <StopIcon className="h-5 w-5" />
+                          {loadingContainers.has(container.name) ? (
+                            <div className="w-5 h-5 border-2 border-gray-300 border-t-yellow-600 rounded-full animate-spin"></div>
+                          ) : (
+                            <StopIcon className="h-5 w-5" />
+                          )}
                         </button>
                         <button
                           onClick={() => startMutation.mutate(container.name)}
-                          className="text-green-600 hover:text-green-900"
+                          disabled={loadingContainers.has(container.name)}
+                          className={`${
+                            loadingContainers.has(container.name)
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-green-600 hover:text-green-900'
+                          }`}
                           title="Start Container"
                         >
-                          <PlayIcon className="h-5 w-5" />
+                          {loadingContainers.has(container.name) ? (
+                            <div className="w-5 h-5 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin"></div>
+                          ) : (
+                            <PlayIcon className="h-5 w-5" />
+                          )}
                         </button>
                         <button
                           onClick={() => {

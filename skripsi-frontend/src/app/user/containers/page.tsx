@@ -14,6 +14,7 @@ import { PlusIcon } from '@heroicons/react/24/outline';
 export default function UserContainersPage() {
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [loadingContainers, setLoadingContainers] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -32,18 +33,48 @@ export default function UserContainersPage() {
   });
 
   const restartMutation = useMutation({
-    mutationFn: (containerName: string) => containerApi.restartContainer(containerName),
-    onSuccess: () => {
+    mutationFn: (containerName: string) => {
+      setLoadingContainers(prev => new Set(Array.from(prev).concat(containerName)));
+      return containerApi.restartContainer(containerName);
+    },
+    onSuccess: (_, containerName) => {
       toast.success('Container restarted successfully');
       queryClient.invalidateQueries({ queryKey: ['userContainers'] });
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
+    },
+    onError: (_, containerName) => {
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
     },
   });
 
   const resetMutation = useMutation({
-    mutationFn: (containerName: string) => containerApi.resetContainer(containerName),
-    onSuccess: () => {
+    mutationFn: (containerName: string) => {
+      setLoadingContainers(prev => new Set(Array.from(prev).concat(containerName)));
+      return containerApi.resetContainer(containerName);
+    },
+    onSuccess: (_, containerName) => {
       toast.success('Container reset successfully');
       queryClient.invalidateQueries({ queryKey: ['userContainers'] });
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
+    },
+    onError: (_, containerName) => {
+      setLoadingContainers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(containerName);
+        return newSet;
+      });
     },
   });
 
@@ -84,6 +115,7 @@ export default function UserContainersPage() {
                 onRestart={() => restartMutation.mutate(container.name)}
                 onReset={() => resetMutation.mutate(container.name)}
                 onViewDetails={() => handleViewDetails(container)}
+                isLoading={loadingContainers.has(container.name)}
               />
             ))}
           </div>

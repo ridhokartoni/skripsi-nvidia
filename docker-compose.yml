@@ -61,5 +61,5 @@ volumes:
 
 networks:
   postgres-network:
-    driver: bridge
+    external: true
     name: postgres-network

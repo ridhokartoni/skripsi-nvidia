@@ -14,6 +14,7 @@ interface ContainerCardProps {
   onRestart: () => void;
   onReset: () => void;
   onViewDetails: () => void;
+  isLoading?: boolean;
 }
 
 export default function ContainerCard({
@@ -21,6 +22,7 @@ export default function ContainerCard({
   onRestart,
   onReset,
   onViewDetails,
+  isLoading = false,
 }: ContainerCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
@@ -74,16 +76,34 @@ export default function ContainerCard({
           </button>
           <button
             onClick={onRestart}
-            className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            disabled={isLoading}
+            className={`flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md ${
+              isLoading
+                ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
+                : 'text-gray-700 bg-white hover:bg-gray-50'
+            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
           >
-            <ArrowPathIcon className="h-4 w-4 mr-1" />
+            {isLoading ? (
+              <div className="w-4 h-4 mr-1 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+            ) : (
+              <ArrowPathIcon className="h-4 w-4 mr-1" />
+            )}
             Restart
           </button>
           <button
             onClick={onReset}
-            className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            disabled={isLoading}
+            className={`flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md ${
+              isLoading
+                ? 'text-gray-400 bg-gray-50 cursor-not-allowed'
+                : 'text-gray-700 bg-white hover:bg-gray-50'
+            } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
           >
-            <ArrowUturnLeftIcon className="h-4 w-4 mr-1" />
+            {isLoading ? (
+              <div className="w-4 h-4 mr-1 border-2 border-gray-300 border-t-red-600 rounded-full animate-spin"></div>
+            ) : (
+              <ArrowUturnLeftIcon className="h-4 w-4 mr-1" />
+            )}
             Reset
           </button>
         </div>
