@@ -93,6 +93,12 @@ router.post('/login', async (req, res, next) => {
         throw new Error('Salah kata sandi!');
     }
 
+    // Check if user is admin - admins must use the admin login endpoint
+    if (existingUser.isAdmin) {
+        res.status(403);
+        throw new Error('Admin users must use the "Login as Administrator" option.');
+    }
+
     const jti = uuidv4();
     // 2 conditions
     if (existingUser) {
@@ -146,9 +152,10 @@ router.post('/admin/login', async (req, res, next) => {
         throw new Error('Salah kata sandi!');
     }
 
+    // Check if user is actually an admin
     if (!existingUser.isAdmin) {
       res.status(403);
-      throw new Error('Permission denied. Admin access required.');
+      throw new Error('Permission denied. Only administrators can use this login method.');
     }
     
     const jti = uuidv4();
