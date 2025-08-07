@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: qaisjabbar
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: nvidia
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    image: skripsi-admin-api
+    container_name: skripsi-admin-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - postgres-network
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+networks:
+  postgres-network:
+    external: true
+
+volumes:
+  postgres-data:

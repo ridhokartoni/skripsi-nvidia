@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: qaisjabbar
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: nvidia
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - postgres-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qaisjabbar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  admin-api:
+    image: skripsi-admin-api
+    container_name: skripsi-admin-api
+    build:
+      context: ./skripsi-admin
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "postgresql://qaisjabbar:123@postgres:5432/nvidia?schema=public"
+      JWT_ACCESS_SECRET: "yourverysecretkey"
+      JWT_REFRESH_SECRET: "yourrefreshsecretkey"
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - postgres-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: skripsi-frontend
+    container_name: skripsi-frontend
+    build:
+      context: ./skripsi-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - postgres-network
+    depends_on:
+      - admin-api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  postgres-network:
+    driver: bridge
+    name: postgres-network

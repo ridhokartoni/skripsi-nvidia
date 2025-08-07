@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int            @id @unique @default(autoincrement())
+  email         String         @unique
+  noHp          String
+  password      String
+  fullName      String
+  isMahasiswa   Boolean        @default(false)
+  isAdmin       Boolean        @default(false)
+  nik           String
+  pj            String?        
+  container     Container[]    @relation("UserContainers")
+  payment       Payment[]      @relation("UserPayments")
+  refreshTokens RefreshToken[] @relation("UserRefreshToken")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Container {
+  id            Int           @id @unique @default(autoincrement())
+  name          String        @unique
+  imageName     String
+  sshPort       Int           @unique
+  jupyterPort   Int           @unique
+  password      String    
+  CPU           Int
+  RAM           String
+  GPU           String   
+  userId        Int
+  user          User          @relation("UserContainers",fields: [userId], references: [id], onDelete: Cascade)
+  tiket         Tiket[]
+}
+
+model Payment {
+  id            Int           @id @unique @default(autoincrement())
+  paketId       Int       
+  status        Int           //status=0(pending/menunggu konfirmasi admin), status=1(approved/disetujui), status=2(rejected/ditolak)
+  harga         Int
+  userId        Int
+  tujuanPenelitian String
+  rejectionReason String?     //alasan penolakan jika ditolak
+  user          User          @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
+  paket         Paket         @relation(fields: [paketId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Paket {
+  id            Int           @id @unique @default(autoincrement())
+  name          String        
+  CPU           Int
+  RAM           Int
+  GPU           Int
+  harga         Int
+  durasi        Int
+  payments      Payment[]
+}
+
+model Tiket {
+  id            Int           @id @unique @default(autoincrement())
+  deskripsi     String        
+  status        String 
+  containerId   Int           
+  container     Container     @relation(fields: [containerId], references: [id], onDelete: Cascade)
+}
+
+model GPU {
+  id            Int           @id @unique @default(autoincrement())
+  name          String        
+}
+model RefreshToken {   // gausah pake, tokennya dilamain
+  id          String   @id @unique @default(uuid())
+  hashedToken String
+  userId      Int
+  user        User     @relation("UserRefreshToken", fields: [userId], references: [id], onDelete: Cascade)
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
