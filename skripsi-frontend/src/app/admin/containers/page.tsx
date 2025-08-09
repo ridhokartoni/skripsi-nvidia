@@ -253,13 +253,13 @@ export default function AdminContainersPage() {
                         </button>
                         <button
                           onClick={() => stopMutation.mutate(container.name)}
-                          disabled={loadingContainers.has(container.name)}
+                          disabled={loadingContainers.has(container.name) || container.status === 'stopped' || container.status === 'exited'}
                           className={`${
-                            loadingContainers.has(container.name)
+                            loadingContainers.has(container.name) || container.status === 'stopped' || container.status === 'exited'
                               ? 'text-gray-400 cursor-not-allowed'
                               : 'text-yellow-600 hover:text-yellow-900'
                           }`}
-                          title="Stop Container"
+                          title={container.status === 'running' ? 'Stop Container' : 'Container is not running'}
                         >
                           {loadingContainers.has(container.name) ? (
                             <div className="w-5 h-5 border-2 border-gray-300 border-t-yellow-600 rounded-full animate-spin"></div>
@@ -269,13 +269,13 @@ export default function AdminContainersPage() {
                         </button>
                         <button
                           onClick={() => startMutation.mutate(container.name)}
-                          disabled={loadingContainers.has(container.name)}
+                          disabled={loadingContainers.has(container.name) || container.status === 'running'}
                           className={`${
-                            loadingContainers.has(container.name)
+                            loadingContainers.has(container.name) || container.status === 'running'
                               ? 'text-gray-400 cursor-not-allowed'
                               : 'text-green-600 hover:text-green-900'
                           }`}
-                          title="Start Container"
+                          title={container.status === 'running' ? 'Container already running' : 'Start Container'}
                         >
                           {loadingContainers.has(container.name) ? (
                             <div className="w-5 h-5 border-2 border-gray-300 border-t-green-600 rounded-full animate-spin"></div>

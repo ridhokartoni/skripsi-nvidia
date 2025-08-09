@@ -23,24 +23,41 @@ export default function ContainerDetailsModal({
   const [newPassword, setNewPassword] = useState('');
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  // Track the latest password for display in the Access tab
+  const [displayPassword, setDisplayPassword] = useState<string>(container.password);
 
+  // Auto-refresh stats every 2 seconds while the modal is open on the "stats" tab
   useEffect(() => {
-    if (isOpen && activeTab === 'stats') {
+    if (!(isOpen && activeTab === 'stats')) return;
+
+    // initial fetch
+    fetchStats();
+
+    const intervalId = setInterval(() => {
       fetchStats();
-    } else if (isOpen && activeTab === 'logs') {
+    }, 2000); // 2 seconds
+
+    return () => clearInterval(intervalId);
+  }, [isOpen, activeTab, container.name]);
+
+  // Sync display password when switching containers or opening modal
+  useEffect(() => {
+    if (isOpen) setDisplayPassword(container.password);
+  }, [isOpen, container.password, container.name]);
+
+  // Fetch logs on demand when switching to the "logs" tab
+  useEffect(() => {
+    if (isOpen && activeTab === 'logs') {
       fetchLogs();
     }
-  }, [isOpen, activeTab]);
+  }, [isOpen, activeTab, container.name]);
 
   const fetchStats = async () => {
-    setIsLoadingStats(true);
     try {
       const response = await containerApi.getContainerStats(container.name);
       setStats(response.data.data.stats);
     } catch (error) {
-      toast.error('Failed to fetch container stats');
-    } finally {
-      setIsLoadingStats(false);
+      // Keep showing previous values; optionally notify
     }
   };
 
@@ -75,6 +92,7 @@ export default function ContainerDetailsModal({
     try {
       await containerApi.changePassword(container.name, newPassword);
       toast.success('Password changed successfully');
+      setDisplayPassword(newPassword);
       setNewPassword('');
     } catch (error) {
       toast.error('Failed to change password');
@@ -189,43 +207,33 @@ export default function ContainerDetailsModal({
                     )}
 
                     {activeTab === 'stats' && (
-                      <div>
-                        {isLoadingStats ? (
-                          <div className="flex justify-center py-8">
-                            <div className="loading-spinner"></div>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500">CPU Usage</h4>
+                            <p className="mt-1 text-2xl font-semibold text-gray-900">{stats?.CPUPerc ?? '0.00%'}</p>
                           </div>
-                        ) : stats ? (
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500">CPU Usage</h4>
-                                <p className="mt-1 text-2xl font-semibold text-gray-900">{stats.CPUPerc}</p>
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500">Memory Usage</h4>
-                                <p className="mt-1 text-2xl font-semibold text-gray-900">{stats.MemPerc}</p>
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500">Memory</h4>
-                                <p className="mt-1 text-sm text-gray-900">{stats.MemUsage}</p>
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500">Network I/O</h4>
-                                <p className="mt-1 text-sm text-gray-900">{stats.NetIO}</p>
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500">Block I/O</h4>
-                                <p className="mt-1 text-sm text-gray-900">{stats.BlockIO}</p>
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500">PIDs</h4>
-                                <p className="mt-1 text-sm text-gray-900">{stats.PIDs}</p>
-                              </div>
-                            </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500">Memory Usage</h4>
+                            <p className="mt-1 text-2xl font-semibold text-gray-900">{stats?.MemPerc ?? '0.00%'}</p>
                           </div>
-                        ) : (
-                          <p className="text-gray-500">No stats available</p>
-                        )}
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500">Memory</h4>
+                            <p className="mt-1 text-sm text-gray-900">{stats?.MemUsage ?? '0B / 0B'}</p>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500">Network I/O</h4>
+                            <p className="mt-1 text-sm text-gray-900">{stats?.NetIO ?? '0B / 0B'}</p>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500">Block I/O</h4>
+                            <p className="mt-1 text-sm text-gray-900">{stats?.BlockIO ?? '0B / 0B'}</p>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-500">PIDs</h4>
+                            <p className="mt-1 text-sm text-gray-900">{stats?.PIDs ?? '0'}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -261,7 +269,7 @@ export default function ContainerDetailsModal({
                                 Copy
                               </button>
                             </div>
-                            <p className="text-xs text-gray-500">Password: {container.password}</p>
+                            <p className="text-xs text-gray-500">Password: {displayPassword}</p>
                           </div>
                         </div>
 

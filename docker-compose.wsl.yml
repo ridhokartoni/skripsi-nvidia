@@ -33,7 +33,14 @@ services:
       PORT: 3000
       NVIDIA_VISIBLE_DEVICES: "all"
       NVIDIA_DRIVER_CAPABILITIES: "utility,compute"
-    runtime: nvidia
+    # GPU access via device reservations (use with `docker compose --compatibility`)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, utility, compute]
     ports:
       - "3000:3000"
     volumes:
@@ -66,3 +73,4 @@ networks:
   postgres-network:
     external: true
     name: postgres-network
+

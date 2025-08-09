@@ -29,8 +29,12 @@ export default function ContainerCard({
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{container.name}</h3>
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            Active
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            container.status === 'running' ? 'bg-green-100 text-green-800' :
+            container.status === 'exited' || container.status === 'stopped' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-gray-100 text-gray-800'
+          }`}>
+            {container.status ? container.status : 'No Status'}
           </span>
         </div>
 

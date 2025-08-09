@@ -452,12 +452,41 @@ router.get('/mycontainer', isAuthenticated, async (req, res, next) => {
     try {
         const { userId } = req;
         console.log('Received request for user ID:', userId);
-        //Get all container by userId using db
+        // Get all containers by userId from DB
         const containers = await getContainersByUserId(userId);
 
+        // For each container, fetch live status from Docker (if exists)
+        const containersWithStatus = await Promise.all(
+            containers.map(async (container) => {
+                try {
+                    const statusCommand = `docker inspect ${container.name} --format '{{.State.Status}}'`;
+                    const status = await new Promise((resolve) => {
+                        exec(statusCommand, (error, stdout) => {
+                            if (error) {
+                                resolve('not_found');
+                            } else {
+                                resolve(stdout.trim());
+                            }
+                        });
+                    });
+                    return {
+                        ...container,
+                        status: status === 'not_found' ? null : status,
+                    };
+                } catch (e) {
+                    return {
+                        ...container,
+                        status: null,
+                    };
+                }
+            })
+        );
+
+        // Disable caching so clients always get fresh container lists
+        res.set('Cache-Control', 'no-store');
         res.status(200).json({
             data: {
-                containers,
+                containers: containersWithStatus,
             },
             meta:{
                 code: 200,

@@ -11,6 +11,10 @@ const {
   getGpuById,
   updateGpu,
   deleteGpu,
+  discoverGpus,
+  discoverMigSummary,
+  discoverMigInstances,
+  discoverTopology,
 } = require('./gpu.services');
 
 router.post('/', isAuthenticated, async (req, res) => {
@@ -99,6 +103,62 @@ router.get('/', isAuthenticated, async (req, res) => {
             }
         );
     }
+});
+
+// Live discovery endpoint for DGX GPUs
+router.get('/discover', isAuthenticated, async (req, res) => {
+    try {
+        const user = await findUserById(req.userId);
+        if (!user.isAdmin) {
+            res.status(403).json({
+                data: {},
+                meta: { code: 403, message: 'Forbidden: You are not authorized to access this resource' }
+            });
+            return;
+        }
+        const discovered = await discoverGpus();
+        res.status(200).json({
+            data: discovered,
+            meta: { code: 200, message: discovered.length ? 'GPU discovery successful' : 'No GPU data available on host' }
+        });
+    } catch (error) {
+        res.status(200).json({
+            data: [],
+            meta: { code: 200, message: 'GPU discovery unavailable on this host' }
+        });
+    }
+});
+
+// MIG discovery (safe on hosts without MIG) – returns arrays of lines for now
+router.get('/mig/summary', isAuthenticated, async (req, res) => {
+    const user = await findUserById(req.userId);
+    if (!user.isAdmin) {
+        res.status(403).json({ data: {}, meta: { code: 403, message: 'Forbidden' } });
+        return;
+    }
+    const data = await discoverMigSummary();
+    res.status(200).json({ data, meta: { code: 200, message: data.length ? 'MIG summary' : 'MIG data unavailable' } });
+});
+
+router.get('/mig/instances', isAuthenticated, async (req, res) => {
+    const user = await findUserById(req.userId);
+    if (!user.isAdmin) {
+        res.status(403).json({ data: {}, meta: { code: 403, message: 'Forbidden' } });
+        return;
+    }
+    const data = await discoverMigInstances();
+    res.status(200).json({ data, meta: { code: 200, message: data.length ? 'MIG instances' : 'MIG instances unavailable' } });
+});
+
+// NVLink/NVSwitch topology matrix (raw text for now)
+router.get('/topology', isAuthenticated, async (req, res) => {
+    const user = await findUserById(req.userId);
+    if (!user.isAdmin) {
+        res.status(403).json({ data: {}, meta: { code: 403, message: 'Forbidden' } });
+        return;
+    }
+    const data = await discoverTopology();
+    res.status(200).json({ data, meta: { code: 200, message: data.raw ? 'Topology matrix' : 'Topology unavailable' } });
 });
 
 router.patch('/:id', isAuthenticated, async (req, res) => {

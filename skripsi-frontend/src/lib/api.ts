@@ -194,15 +194,13 @@ export const tiketApi = ticketApi;
 
 // GPU API calls
 export const gpuApi = {
-  getAllGPUs: () =>
-    api.get('/gpu'),
-  
-  createGPU: (data: any) =>
-    api.post('/gpu', data),
-  
-  updateGPU: (id: number, data: any) =>
-    api.patch(`/gpu/${id}`, data),
-  
-  deleteGPU: (id: number) =>
-    api.delete(`/gpu/${id}`),
+  getAllGPUs: () => api.get('/gpu'),
+  getDiscovery: () => api.get('/gpu/discover'),
+  getMigSummary: () => api.get('/gpu/mig/summary'),
+  getMigInstances: () => api.get('/gpu/mig/instances'),
+  getTopology: () => api.get('/gpu/topology'),
+
+  createGPU: (data: any) => api.post('/gpu', data),
+  updateGPU: (id: number, data: any) => api.patch(`/gpu/${id}`, data),
+  deleteGPU: (id: number) => api.delete(`/gpu/${id}`),
 };

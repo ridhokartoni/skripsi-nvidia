@@ -2,10 +2,11 @@ import { Fragment, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { containerApi } from '@/lib/api';
+import { containerApi, gpuApi } from '@/lib/api';
 import { User } from '@/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { useEffect } from 'react';
 
 interface CreateContainerModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export default function CreateContainerModal({
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedImage, setSelectedImage] = useState('');
+  const [gpuOptions, setGpuOptions] = useState<{ label: string; value: string }[]>([]);
   const queryClient = useQueryClient();
 
   const {
@@ -38,6 +40,21 @@ export default function CreateContainerModal({
     setValue,
     formState: { errors },
   } = useForm<CreateContainerForm>();
+
+  // Load GPU options from backend to populate dropdown
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await gpuApi.getAllGPUs();
+        const list = (res.data?.data || []) as Array<{ id: number; name: string }>;
+        const opts = list.map((gpu, idx) => ({ label: `${gpu.name} (device ${idx})`, value: `device=${idx}` }));
+        setGpuOptions([{ label: 'None', value: 'none' }, { label: 'All', value: 'all' }, ...opts]);
+      } catch (e) {
+        // fallback options
+        setGpuOptions([{ label: 'None', value: 'none' }, { label: 'All', value: 'all' }]);
+      }
+    })();
+  }, []);
 
   const createMutation = useMutation({
     mutationFn: (data: CreateContainerForm) => containerApi.createContainer(data),
@@ -238,12 +255,18 @@ export default function CreateContainerModal({
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         GPU Allocation *
                       </label>
-                      <input
+                      <select
                         {...register('gpus', { required: 'GPU allocation is required' })}
-                        type="text"
-                        placeholder='e.g., "device=0" or "all"'
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                        defaultValue={gpuOptions[0]?.value}
+                      >
+                        {gpuOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-1 text-xs text-gray-500">Options map to Docker --gpus flag values.</p>
                       {errors.gpus && (
                         <p className="mt-1 text-sm text-red-600">{errors.gpus.message}</p>
                       )}

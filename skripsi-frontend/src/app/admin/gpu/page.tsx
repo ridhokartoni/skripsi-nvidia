@@ -31,6 +31,17 @@ export default function AdminGPUPage() {
   const [selectedGpu, setSelectedGpu] = useState<GPU | null>(null);
   const [formData, setFormData] = useState({ name: '' });
 
+  // Live discovery (read-only)
+  const [discovery, setDiscovery] = useState<any[]>([]);
+  const [discoverLoading, setDiscoverLoading] = useState(false);
+
+  // MIG and Topology (future panes, safe on hosts without GPUs)
+  const [migSummary, setMigSummary] = useState<any[]>([]);
+  const [migInstances, setMigInstances] = useState<any[]>([]);
+  const [migLoading, setMigLoading] = useState(false);
+  const [topology, setTopology] = useState<string>('');
+  const [topoLoading, setTopoLoading] = useState(false);
+
   useEffect(() => {
     if (!user?.isAdmin) {
       router.push('/login');
@@ -49,6 +60,49 @@ export default function AdminGPUPage() {
       toast.error('Failed to fetch GPUs');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDiscovery = async () => {
+    try {
+      setDiscoverLoading(true);
+      const response = await gpuApi.getDiscovery();
+      setDiscovery(response.data.data || []);
+    } catch (error) {
+      console.error('Error discovering GPUs:', error);
+      toast.error('Failed to run GPU discovery');
+    } finally {
+      setDiscoverLoading(false);
+    }
+  };
+
+  const fetchMig = async () => {
+    try {
+      setMigLoading(true);
+      const [summary, instances] = await Promise.all([
+        gpuApi.getMigSummary(),
+        gpuApi.getMigInstances(),
+      ]);
+      setMigSummary(summary.data.data || []);
+      setMigInstances(instances.data.data || []);
+    } catch (error) {
+      console.error('Error fetching MIG data:', error);
+      toast.error('MIG data unavailable on this host');
+    } finally {
+      setMigLoading(false);
+    }
+  };
+
+  const fetchTopology = async () => {
+    try {
+      setTopoLoading(true);
+      const res = await gpuApi.getTopology();
+      setTopology(res.data.data?.raw || '');
+    } catch (error) {
+      console.error('Error fetching topology:', error);
+      toast.error('Topology unavailable on this host');
+    } finally {
+      setTopoLoading(false);
     }
   };
 
@@ -115,13 +169,22 @@ export default function AdminGPUPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">GPU Management</h1>
             <p className="text-gray-600">Manage available GPU resources</p>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            <PlusIcon className="h-5 w-5" />
-            Add GPU
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={fetchDiscovery}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition"
+              title="Discover live GPUs (DGX)"
+            >
+              Refresh Live GPUs
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Add GPU
+            </button>
+          </div>
         </div>
 
         {/* GPUs Grid */}
@@ -183,6 +246,139 @@ export default function AdminGPUPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Live DGX GPU Discovery */}
+        <div className="mt-6 bg-white rounded-lg shadow-sm">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h2 className="font-semibold text-gray-900">Live DGX GPU Inventory</h2>
+            <button
+              onClick={fetchDiscovery}
+              disabled={discoverLoading}
+              className="px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-60"
+            >
+              {discoverLoading ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </div>
+          <div className="p-4">
+            {discoverLoading ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : discovery.length === 0 ? (
+              <p className="text-sm text-gray-600">No live data yet. Click Refresh to query nvidia-smi on the server.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-600">
+                      <th className="p-2">Index</th>
+                      <th className="p-2">Name</th>
+                      <th className="p-2">UUID</th>
+                      <th className="p-2">Driver</th>
+                      <th className="p-2">Mem (Used/Total MB)</th>
+                      <th className="p-2">Util %</th>
+                      <th className="p-2">Temp °C</th>
+                      <th className="p-2">SM MHz</th>
+                      <th className="p-2">Compute Mode</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {discovery.map((g: any) => (
+                      <tr key={g.uuid || g.index} className="border-t">
+                        <td className="p-2">{g.index}</td>
+                        <td className="p-2">{g.name}</td>
+                        <td className="p-2 font-mono text-xs">{g.uuid}</td>
+                        <td className="p-2">{g.driverVersion}</td>
+                        <td className="p-2">{g.memoryUsedMB} / {g.memoryTotalMB}</td>
+                        <td className="p-2">{g.utilizationPercent}</td>
+                        <td className="p-2">{g.temperatureC}</td>
+                        <td className="p-2">{g.smClockMHz}</td>
+                        <td className="p-2">{g.computeMode}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <p className="mt-3 text-xs text-gray-500">
+              Read-only data pulled from nvidia-smi. For MIG partitioning and multi-GPU NVLink topology, we can extend this with additional endpoints as a next step.
+            </p>
+          </div>
+        </div>
+
+        {/* MIG (Future Pane) */}
+        <div className="mt-6 bg-white rounded-lg shadow-sm">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h2 className="font-semibold text-gray-900">MIG Layout (Preview)</h2>
+            <button
+              onClick={fetchMig}
+              disabled={migLoading}
+              className="px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-60"
+            >
+              {migLoading ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </div>
+          <div className="p-4 space-y-4">
+            {migLoading ? (
+              <div className="flex justify-center items-center h-24">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Summary</h3>
+                  {migSummary.length === 0 ? (
+                    <p className="text-sm text-gray-600">MIG data unavailable on this host.</p>
+                  ) : (
+                    <ul className="list-disc pl-5 text-sm text-gray-800">
+                      {migSummary.map((x, i) => (
+                        <li key={i} className="font-mono text-xs">{x.line}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Instances</h3>
+                  {migInstances.length === 0 ? (
+                    <p className="text-sm text-gray-600">No MIG instances detected.</p>
+                  ) : (
+                    <ul className="list-disc pl-5 text-sm text-gray-800">
+                      {migInstances.map((x, i) => (
+                        <li key={i} className="font-mono text-xs">{x.line}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
+            <p className="mt-1 text-xs text-gray-500">Best-effort parsing; shown as raw lines for now.</p>
+          </div>
+        </div>
+
+        {/* Topology (Future Pane) */}
+        <div className="mt-6 bg-white rounded-lg shadow-sm">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h2 className="font-semibold text-gray-900">NVLink / NVSwitch Topology (Preview)</h2>
+            <button
+              onClick={fetchTopology}
+              disabled={topoLoading}
+              className="px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-60"
+            >
+              {topoLoading ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </div>
+          <div className="p-4">
+            {topoLoading ? (
+              <div className="flex justify-center items-center h-24">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : topology ? (
+              <pre className="text-xs bg-gray-50 p-3 rounded-md overflow-x-auto whitespace-pre-wrap">{topology}</pre>
+            ) : (
+              <p className="text-sm text-gray-600">Topology data unavailable on this host.</p>
+            )}
+          </div>
         </div>
 
         {/* Add GPU Modal */}
