@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { containerApi, userApi } from '@/lib/api';
+import { containerApi, userApi, paymentApi } from '@/lib/api';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { useSearchParams } from 'next/navigation';
 import CreateContainerModal from '@/components/containers/CreateContainerModal';
 import SSHModal from '@/components/containers/SSHModal';
 import { Container, User } from '@/types';
@@ -20,6 +21,8 @@ import {
 export default function AdminContainersPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [sshModalOpen, setSshModalOpen] = useState(false);
+  const [prefillSpec, setPrefillSpec] = useState<any>(null);
+  const searchParams = useSearchParams();
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -33,6 +36,30 @@ export default function AdminContainersPage() {
       return response.data.data.containers;
     },
   });
+
+  // If redirected with prefillPaymentId, fetch that payment and prep modal defaults
+  useEffect(() => {
+    const prefillId = searchParams?.get('prefillPaymentId');
+    if (!prefillId) return;
+    (async () => {
+      try {
+        const res = await paymentApi.getAllPayments();
+        const all = res.data?.data || [];
+        const payment = all.find((p: any) => String(p.id) === String(prefillId));
+        if (payment) {
+          setPrefillSpec({
+            userId: payment.user?.id || payment.userId,
+            CPU: payment.paket?.CPU,
+            RAM: payment.paket?.RAM,
+            GPU: payment.paket?.GPU,
+          });
+          setCreateModalOpen(true);
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, [searchParams]);
 
   const { data: users } = useQuery({
     queryKey: ['allUsers'],
@@ -312,6 +339,7 @@ export default function AdminContainersPage() {
           isOpen={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           users={users || []}
+          prefill={prefillSpec || undefined}
         />
         
         {selectedContainer && (

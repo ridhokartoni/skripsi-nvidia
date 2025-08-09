@@ -76,7 +76,8 @@ export default function AdminPaymentsPage() {
     try {
       await paymentApi.confirmPayment(paymentId);
       toast.success('Payment confirmed successfully');
-      fetchPayments();
+      // Redirect to containers page with prefill
+      router.push(`/admin/containers?prefillPaymentId=${paymentId}`);
     } catch (error) {
       console.error('Error confirming payment:', error);
       toast.error('Failed to confirm payment');

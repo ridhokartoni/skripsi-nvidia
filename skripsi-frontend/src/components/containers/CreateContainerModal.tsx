@@ -8,10 +8,19 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 
+interface PrefillSpec {
+  userId?: number;
+  CPU?: number;
+  RAM?: number; // in GB
+  GPU?: number; // count
+  imageName?: string;
+}
+
 interface CreateContainerModalProps {
   isOpen: boolean;
   onClose: () => void;
   users: User[];
+  prefill?: PrefillSpec;
 }
 
 interface CreateContainerForm {
@@ -26,6 +35,7 @@ export default function CreateContainerModal({
   isOpen,
   onClose,
   users,
+  prefill,
 }: CreateContainerModalProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -55,6 +65,19 @@ export default function CreateContainerModal({
       }
     })();
   }, []);
+
+  // Apply prefill when provided and modal opens
+  useEffect(() => {
+    if (!isOpen || !prefill) return;
+    if (prefill.userId) setValue('userContainer', prefill.userId as any);
+    if (prefill.imageName) {
+      setSelectedImage(prefill.imageName);
+      setValue('imageName', prefill.imageName);
+    }
+    if (typeof prefill.RAM !== 'undefined') setValue('memoryLimit', `${prefill.RAM}g`);
+    if (typeof prefill.CPU !== 'undefined') setValue('cpus', prefill.CPU as any);
+    if (typeof prefill.GPU !== 'undefined') setValue('gpus', prefill.GPU > 0 ? 'all' : 'none');
+  }, [isOpen, prefill, setValue]);
 
   const createMutation = useMutation({
     mutationFn: (data: CreateContainerForm) => containerApi.createContainer(data),
