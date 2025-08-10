@@ -28,6 +28,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<any>) => {
+    // Don't show error toasts for container stats endpoints (monitoring page)
+    const isStatsEndpoint = error.config?.url?.includes('/container/') && error.config?.url?.includes('/stats');
+    
     if (error.response?.status === 401) {
       // Only logout if we're not already on the login page and the error message indicates token issue
       const errorMessage = error.response?.data?.message || '';
@@ -43,13 +46,14 @@ api.interceptors.response.use(
         }
       } else {
         // For other 401 errors, just show the message without logging out
-        if (error.response?.data?.message) {
+        if (error.response?.data?.message && !isStatsEndpoint) {
           toast.error(error.response.data.message);
         }
       }
-    } else if (error.response?.data?.message) {
+    } else if (error.response?.data?.message && !isStatsEndpoint) {
+      // Don't show error toasts for stats endpoints
       toast.error(error.response.data.message);
-    } else if (error.message) {
+    } else if (error.message && !isStatsEndpoint) {
       toast.error(error.message);
     }
     return Promise.reject(error);
@@ -97,6 +101,9 @@ export const containerApi = {
   
   getContainerStats: (name: string) =>
     api.get(`/docker/container/${name}/stats`),
+  
+  getBatchContainerStats: () =>
+    api.get('/docker/containers/batch-stats'),
   
   getContainerLogs: (name: string) =>
     api.get(`/docker/container/${name}/log`),

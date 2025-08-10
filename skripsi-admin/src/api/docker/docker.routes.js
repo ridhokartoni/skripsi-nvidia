@@ -1,8 +1,10 @@
 const express = require('express');
 const { isAuthenticated } = require('../../middleware/middleware');
 const { exec } = require('child_process');
+const config = require('../../config/environment');
 
 const { findUserById, getAvailablePort, createContainer, getContainerByName, getContainersByUserId, deleteContainer, getAllContainer, updatePassword } = require('./docker.services');
+const { getBatchContainerStats, getBatchContainerStatus } = require('./docker-stats-batch');
 
 const router = express.Router();
 
@@ -87,15 +89,12 @@ router.post('/createContainer', isAuthenticated, async (req, res, next) => {
             gpuFlag = `--gpus "${gpus}"`;
         }
         
-        // DNS CONFIGURATION - CHOOSE ONE BASED ON YOUR ENVIRONMENT
-        // For PRODUCTION: Use the commented line with --dns 172.17.9.25 (internal DNS)
-        // For DEVELOPMENT: Use the active line with --dns 8.8.8.8 --dns 8.8.4.4 (Google DNS)
+        // DNS Configuration from environment
+        const dnsServers = config.DOCKER_DNS_SERVERS.split(',').map(dns => `--dns ${dns.trim()}`).join(' ');
+        console.log(`Using DNS servers: ${config.DOCKER_DNS_SERVERS}`);
         
-        // PRODUCTION COMMAND (with internal DNS 172.17.9.25):
-        // const command = `docker run -d --dns 172.17.9.25 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
-        
-        // DEVELOPMENT COMMAND (with Google Public DNS):
-        const command = `docker run -d --dns 8.8.8.8 --dns 8.8.4.4 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
+        // Build Docker command with configurable DNS
+        const command = `docker run -d ${dnsServers} --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
 
         const execPromise = new Promise((resolve, reject) => {
             exec(command, (error, stdout, stderr) => {
@@ -204,15 +203,11 @@ router.post('/container/:containerName/reset', isAuthenticated, async (req, res,
             gpuFlag = `--gpus "${gpus}"`;
         }
 
-        // DNS CONFIGURATION - CHOOSE ONE BASED ON YOUR ENVIRONMENT
-        // For PRODUCTION: Use the commented line with --dns 172.17.9.25 (internal DNS)
-        // For DEVELOPMENT: Use the active line with --dns 8.8.8.8 --dns 8.8.4.4 (Google DNS)
+        // DNS Configuration from environment
+        const dnsServers = config.DOCKER_DNS_SERVERS.split(',').map(dns => `--dns ${dns.trim()}`).join(' ');
         
-        // PRODUCTION COMMAND (with internal DNS 172.17.9.25):
-        // const command = `docker rm -f ${containerName} && docker run -d --dns 172.17.9.25 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
-        
-        // DEVELOPMENT COMMAND (with Google Public DNS):
-        const command = `docker rm -f ${containerName} && docker run -d --dns 8.8.8.8 --dns 8.8.4.4 --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
+        // Build Docker command with configurable DNS
+        const command = `docker rm -f ${containerName} && docker run -d ${dnsServers} --label user=${userContainer} -e USERNAME=${username} -e PASSWORD=${password} -e PATH=/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin -e WorkingDir=/root -e NB_USER=root -e HOME=/root --user root --name ${containerName} --memory=${memoryLimit} --cpus=${cpus} ${gpuFlag} -p ${portSSH}:22 -p ${portJupyter}:8888 ${imageName} /bin/bash -c "apt-get update && apt-get install -y openssh-server && mkdir /var/run/sshd && echo \\$USERNAME:\\$PASSWORD | chpasswd && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && echo 'export PATH=\\$PATH:/opt/conda/bin' >> /etc/profile && /usr/sbin/sshd -D & jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root"`;
 
         const execPromise = new Promise((resolve, reject) => {
             exec(command, (error, stdout, stderr) => {
@@ -562,6 +557,60 @@ router.get('/allcontainer', isAuthenticated, async (req, res, next) => {
     }
 });
 
+// Batch endpoint to get stats for all containers at once (admin only)
+router.get('/containers/batch-stats', isAuthenticated, async (req, res, next) => {
+    try {
+        const { userId } = req;
+        const user = await findUserById(userId);
+        
+        if (!user.isAdmin) {
+            res.status(403).json({
+                data: {},
+                meta: {
+                    code: 403,
+                    message: 'Forbidden: You are not authorized to access batch stats',
+                }
+            });
+            return;
+        }
+        
+        // Get all containers from DB
+        const containers = await getAllContainer();
+        const containerNames = containers.map(c => c.name);
+        
+        // Fetch stats and status for all containers in batch
+        const [statsMap, statusMap] = await Promise.all([
+            getBatchContainerStats(containerNames),
+            getBatchContainerStatus(containerNames)
+        ]);
+        
+        // Combine container data with stats
+        const containersWithStats = containers.map(container => {
+            const stats = statsMap[container.name] || {};
+            const status = statusMap[container.name] || {};
+            
+            return {
+                ...container,
+                status: status.status || 'unknown',
+                stats: stats,
+                pid: status.pid || 0
+            };
+        });
+        
+        res.status(200).json({
+            data: {
+                containers: containersWithStats
+            },
+            meta: {
+                code: 200,
+                message: 'Batch container stats retrieved successfully',
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
 //create endpoint for get stats container using container name and docker command with no stream
 router.get('/container/:containerName/stats', isAuthenticated, async (req, res, next) => {
     try {
@@ -570,8 +619,12 @@ router.get('/container/:containerName/stats', isAuthenticated, async (req, res, 
         //check in db is the container name is true with the userId
         //if not return error
         const container = await getContainerByName(containerName);
-
-        if (container.userId !== req.userId) {
+        
+        // Check if user is admin or owns the container
+        const user = await findUserById(req.userId);
+        const isAdmin = user && user.isAdmin;
+        
+        if (!isAdmin && container.userId !== req.userId) {
             res.status(403).json({
                 data: {
                 },
@@ -689,7 +742,9 @@ router.get('/container/:containerName/jupyterlink', isAuthenticated, async (req,
             return;
         }
 
-        const jupyterLink = `http://localhost:${container.jupyterPort}`;
+        // Get the host from request headers or use configured API host
+        const host = config.isLocal() ? 'localhost' : (req.get('host')?.split(':')[0] || config.API_HOST);
+        const jupyterLink = `http://${host}:${container.jupyterPort}`;
         res.status(200).json({
             data: {
                 jupyterLink,

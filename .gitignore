@@ -1,10 +1,15 @@
-# Environment variables
+# Environment variables and secrets
 .env
 .env.local
+.env.production
+.env.development
+.env.staging
 .env.*.local
 .env.*
 *.env
 !.env.example
+!.env.production.example
+!.env.local.example
 # Ignore local example with real values
 .env.example.local
 
@@ -62,6 +67,11 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+*.sql
+*.dump
+*.backup
+database.json
+db.json
 
 # Docker volumes (if any local data)
 volumes/
@@ -70,3 +80,243 @@ data/
 # OS files
 Thumbs.db
 Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Security and certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.truststore
+private/
+secrets/
+certs/
+ssl/
+
+# SSH keys
+*.pub
+id_rsa
+id_rsa.*
+id_dsa
+id_dsa.*
+id_ecdsa
+id_ecdsa.*
+id_ed25519
+id_ed25519.*
+known_hosts
+authorized_keys
+
+# AWS credentials
+.aws/
+aws-exports.js
+
+# Google Cloud credentials
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!jsconfig.json
+!*.config.json
+!manifest.json
+gcp-key.json
+service-account*.json
+
+# Azure credentials
+.azure/
+azure.json
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+
+# Ansible
+*.retry
+vault_pass.txt
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+!docker-compose.wsl.yml
+!docker-compose.production.yml
+!docker-compose.example.yml
+.dockerignore.local
+
+# JWT secrets and tokens
+jwt.secret
+*.token
+token.txt
+access_token*
+refresh_token*
+
+# API keys and credentials
+apikeys/
+api_key*
+api-key*
+apiKey*
+credentials/
+credentials.json
+credentials.yml
+credentials.yaml
+
+# Password files
+passwords.txt
+passwords.json
+passwd
+shadow
+*.pwd
+
+# Session data
+sessions/
+*.session
+session_secret*
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.swp
+*.swo
+*~
+
+# Log files that might contain sensitive data
+access.log
+error.log
+audit.log
+*.log.*
+logs/
+
+# Config files with potential secrets
+config.local.js
+config.local.json
+settings.local.json
+*.local.config
+
+# Database dumps and exports
+*.dump
+*.sql.gz
+*.tar.gz
+mysqldump/
+pgdump/
+mongodump/
+
+# Private documentation
+private-docs/
+private-notes/
+TODO.private.md
+NOTES.private.md
+
+# Build artifacts that might embed secrets
+.env.production.local
+.env.development.local
+.env.test.local
+build-env/
+
+# IDE and editor specific
+.vscode/settings.json
+.idea/dataSources.xml
+.idea/deployment.xml
+.idea/webServers.xml
+*.sublime-workspace
+
+# Package manager security files
+npm-shrinkwrap.json
+.npmrc
+.yarnrc
+
+# Python virtual environments with installed packages
+venv/
+env/
+ENV/
+.venv/
+.python-version
+pipfile.lock
+
+# Ruby
+.bundle/
+vendor/bundle/
+.env.rb
+
+# PHP
+vendor/
+composer.lock
+.env.php
+
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# .NET
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+appsettings.local.json
+appsettings.Development.json
+appsettings.Production.json
+web.config
+
+# Monitoring and metrics
+prometheus-data/
+grafana-data/
+metrics/
+
+# Custom application secrets
+app-secrets/
+application-secrets.yml
+application-secrets.yaml
+application-secrets.properties
+
+# Jupyter notebooks with outputs
+*.ipynb_checkpoints
+*.ipynb
+!*.clean.ipynb
+
+# Coverage reports that might leak code structure
+coverage/
+.coverage
+htmlcov/
+*.cover
+*.coverage
+
+# Prisma
+prisma/migrations/
+prisma/*.db
+prisma/*.db-journal
+
+# Next.js specific
+.next/
+out/
+.vercel
+
+# Gatsby
+.cache/
+public/
+
+# Temporary and cache files
+tmp/
+temp/
+cache/
+*.tmp
+*.temp
+*.cache

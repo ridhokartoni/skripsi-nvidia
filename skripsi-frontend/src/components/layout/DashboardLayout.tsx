@@ -18,6 +18,7 @@ import {
   UsersIcon,
   CpuChipIcon,
   HomeIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -32,6 +33,7 @@ const userNavigation = [
 
 const adminNavigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
+  { name: 'Monitoring', href: '/admin/monitoring', icon: ChartBarIcon },
   { name: 'All Containers', href: '/admin/containers', icon: ServerStackIcon },
   { name: 'Users', href: '/admin/users', icon: UsersIcon },
   { name: 'Payments', href: '/admin/payments', icon: CreditCardIcon },
