@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthProtected } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Link from 'next/link';
 import { 
@@ -22,7 +22,7 @@ import { userApi, containerApi, paymentApi, tiketApi, paketApi } from '@/lib/api
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const { user, isReady, isLoading: authLoading } = useAuthProtected({ requireAdmin: true });
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -36,16 +36,10 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
+    if (isReady && user) {
+      fetchDashboardData();
     }
-    if (!user.isAdmin) {
-      router.push('/user');
-      return;
-    }
-    fetchDashboardData();
-  }, [user, router]);
+  }, [isReady, user]);
 
   const fetchDashboardData = async () => {
     try {

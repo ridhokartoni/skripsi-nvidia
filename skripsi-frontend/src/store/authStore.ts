@@ -2,14 +2,31 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '@/types';
 
+// Helper functions for cookie management
+const setCookie = (name: string, value: string, days: number = 7) => {
+  if (typeof window !== 'undefined') {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  }
+};
+
+const removeCookie = (name: string) => {
+  if (typeof window !== 'undefined') {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+  }
+};
+
 interface AuthState {
   token: string | null;
   user: User | null;
   isAdmin: boolean;
   isAuthenticated: boolean;
+  isHydrated: boolean;
   setAuth: (token: string, user: User) => void;
   logout: () => void;
   updateUser: (user: User) => void;
+  setHydrated: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -19,10 +36,12 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isAdmin: false,
       isAuthenticated: false,
+      isHydrated: false,
       
       setAuth: (token, user) => {
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', token);
+          setCookie('token', token);
         }
         set({
           token,
@@ -36,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          removeCookie('token');
         }
         set({
           token: null,
@@ -51,6 +71,10 @@ export const useAuthStore = create<AuthState>()(
           isAdmin: user.isAdmin,
         });
       },
+      
+      setHydrated: () => {
+        set({ isHydrated: true });
+      },
     }),
     {
       name: 'auth-storage',
@@ -60,6 +84,9 @@ export const useAuthStore = create<AuthState>()(
         isAdmin: state.isAdmin,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated();
+      },
     }
   )
 );

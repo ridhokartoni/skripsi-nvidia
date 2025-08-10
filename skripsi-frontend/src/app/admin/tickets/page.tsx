@@ -32,6 +32,11 @@ interface Ticket {
       noHp?: string; // phone
     };
   } | null;
+  // Preserved data for when container is deleted
+  containerName?: string;
+  userName?: string;
+  userEmail?: string;
+  userPhone?: string;
 }
 
 export default function AdminTicketsPage() {
@@ -261,8 +266,13 @@ export default function AdminTicketsPage() {
                         <div className="flex items-center">
                           <ServerIcon className="h-5 w-5 text-gray-400 mr-2" />
                           <div className="text-sm font-medium text-gray-900">
-                            {ticket.container ? ticket.container.name : (
-                              <span className="text-gray-500 italic">Container Deleted</span>
+                            {ticket.container ? ticket.container.name : 
+                             ticket.containerName ? (
+                              <span className="text-gray-500">
+                                {ticket.containerName} <span className="italic">(Deleted)</span>
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 italic">No Container</span>
                             )}
                           </div>
                         </div>
@@ -270,18 +280,18 @@ export default function AdminTicketsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {ticket.container?.user?.fullName || (
+                            {ticket.container?.user?.fullName || ticket.userName || (
                               <span className="text-gray-500 italic">N/A</span>
                             )}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {ticket.container?.user?.email || (
-                              <span className="italic">No container data</span>
+                            {ticket.container?.user?.email || ticket.userEmail || (
+                              <span className="italic">No user data</span>
                             )}
                           </div>
-                          {ticket.container?.user?.noHp && (
+                          {(ticket.container?.user?.noHp || ticket.userPhone) && (
                             <div className="text-sm text-gray-500">
-                              Phone: {ticket.container.user.noHp}
+                              Phone: {ticket.container?.user?.noHp || ticket.userPhone}
                             </div>
                           )}
                         </div>

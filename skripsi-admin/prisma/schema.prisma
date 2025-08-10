@@ -73,6 +73,15 @@ model Tiket {
   status        String 
   containerId   Int?          // Made optional to allow null values
   container     Container?    @relation(fields: [containerId], references: [id], onDelete: SetNull)
+  
+  // Store container and user info to preserve after deletion
+  containerName String?       // Store container name
+  userName      String?       // Store user full name
+  userEmail     String?       // Store user email
+  userPhone     String?       // Store user phone
+  
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model GPU {

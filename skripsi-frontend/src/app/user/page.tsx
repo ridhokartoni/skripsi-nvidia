@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { containerApi, paymentApi, tiketApi } from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthProtected } from '@/hooks/useAuth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Link from 'next/link';
 import { 
@@ -19,7 +19,7 @@ import {
 
 export default function UserDashboard() {
   const router = useRouter();
-  const user = useAuthStore((state) => state.user);
+  const { user, isReady, isLoading: authLoading } = useAuthProtected();
   const [stats, setStats] = useState({
     containers: 0,
     activeContainers: 0,
@@ -28,15 +28,7 @@ export default function UserDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    fetchDashboardData();
-  }, [user, router]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -102,7 +94,35 @@ export default function UserDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Initial load
+  useEffect(() => {
+    if (isReady && user) {
+      fetchDashboardData();
+    }
+  }, [isReady, user, fetchDashboardData]);
+
+  // Auto-refresh on focus
+  useEffect(() => {
+    const handleFocus = () => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleFocus);
+    window.addEventListener('focus', handleFocus);
+
+    // Set up polling interval (every 20 seconds)
+    const interval = setInterval(fetchDashboardData, 20000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleFocus);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(interval);
+    };
+  }, [fetchDashboardData]);
 
   const dashboardCards = [
     {

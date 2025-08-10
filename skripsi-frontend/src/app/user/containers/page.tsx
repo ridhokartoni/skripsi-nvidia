@@ -10,6 +10,7 @@ import ContainerDetailsModal from '@/components/containers/ContainerDetailsModal
 import { Container } from '@/types';
 import toast from 'react-hot-toast';
 import { PlusIcon } from '@heroicons/react/24/outline';
+import { useContainerAutoRefresh } from '@/hooks/useAutoRefresh';
 
 export default function UserContainersPage() {
   const [selectedContainer, setSelectedContainer] = useState<Container | null>(null);
@@ -17,6 +18,9 @@ export default function UserContainersPage() {
   const [loadingContainers, setLoadingContainers] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const router = useRouter();
+  
+  // Enable auto-refresh for containers
+  useContainerAutoRefresh();
 
   const { data: containers, isLoading, error } = useQuery({
     queryKey: ['userContainers'],

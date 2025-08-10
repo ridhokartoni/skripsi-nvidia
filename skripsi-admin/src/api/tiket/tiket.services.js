@@ -1,9 +1,30 @@
 const { db } = require('../../utils/db');
 
 //create function to create tiket for a container
-function createTiket(tiket) {
+async function createTiket(tiket) {
+  // If containerId is provided, fetch container and user info
+  let additionalData = {};
+  if (tiket.containerId) {
+    const container = await db.Container.findUnique({
+      where: { id: tiket.containerId },
+      include: { user: true }
+    });
+    
+    if (container) {
+      additionalData = {
+        containerName: container.name,
+        userName: container.user.fullName,
+        userEmail: container.user.email,
+        userPhone: container.user.noHp
+      };
+    }
+  }
+  
   return db.Tiket.create({
-    data: tiket,
+    data: {
+      ...tiket,
+      ...additionalData
+    },
   });
 }
 

@@ -29,12 +29,29 @@ function getContainersByUserId(userId) {
 
 //create function to delete container
 async function deleteContainer(id) {
-  // First delete all related tickets
-  await db.Tiket.deleteMany({
-    where: {
-      containerId: id,
-    },
+  // Get container info before deletion to preserve in tickets
+  const container = await db.Container.findUnique({
+    where: { id },
+    include: { user: true }
   });
+  
+  // Update all related tickets to preserve history
+  // Set containerId to null but keep the stored container/user info
+  if (container) {
+    await db.Tiket.updateMany({
+      where: {
+        containerId: id,
+      },
+      data: {
+        containerId: null,
+        // Ensure we have the container and user info stored
+        containerName: container.name,
+        userName: container.user.fullName,
+        userEmail: container.user.email,
+        userPhone: container.user.noHp
+      }
+    });
+  }
   
   // Then delete the container
   return db.Container.delete({

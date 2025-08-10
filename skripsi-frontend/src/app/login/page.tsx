@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { authApi, userApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -17,9 +17,14 @@ interface LoginForm {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const { isAuthenticated, isAdmin: currentUserIsAdmin, isHydrated } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Get redirect URL from query params
+  const redirectTo = searchParams?.get('from') || null;
 
   const {
     register,
@@ -28,7 +33,7 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginForm>();
 
-  const isAdmin = watch('isAdmin');
+  const isAdminLogin = watch('isAdmin');
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
@@ -56,11 +61,13 @@ export default function LoginPage() {
 
       toast.success('Login successful!');
       
-      // Redirect based on user role
-      if (user.isAdmin) {
-        router.push('/admin/containers');
+      // Redirect to the original page if exists, otherwise based on role
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (user.isAdmin) {
+        router.push('/admin');
       } else {
-        router.push('/user/containers');
+        router.push('/user');
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -163,7 +170,7 @@ export default function LoginPage() {
                 Signing in...
               </div>
             ) : (
-              `Sign in${isAdmin ? ' as Admin' : ''}`
+              `Sign in${isAdminLogin ? ' as Admin' : ''}`
             )}
           </button>
         </form>

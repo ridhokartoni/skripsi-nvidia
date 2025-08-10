@@ -233,9 +233,6 @@ export default function AdminGPUPage() {
                         {typeof (gpu as any).deviceId === 'number' && (
                           <p className="text-sm text-gray-500">Device: {gpu.deviceId}</p>
                         )}
-                        <p className="text-xs text-gray-400 mt-1">
-                          Added: {new Date(gpu.createdAt).toLocaleDateString()}
-                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2">

@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -15,10 +18,10 @@ const TEST_ADMIN = {
 async function createTestAdmin() {
   try {
     console.log('🔄 Creating test admin user...\n');
-    
+
     // Hash the password with bcrypt (salt rounds: 12)
     const hashedPassword = await bcrypt.hash(TEST_ADMIN.password, 12);
-    
+
     // Create the admin user
     const newAdmin = await prisma.user.create({
       data: {
@@ -32,7 +35,7 @@ async function createTestAdmin() {
         pj: TEST_ADMIN.fullName
       }
     });
-    
+
     console.log('✅ Test admin user created successfully!\n');
     console.log('=====================================');
     console.log('📧 Login Credentials:');
@@ -49,17 +52,17 @@ async function createTestAdmin() {
     console.log('1. Go to http://localhost:3001/login (or your frontend URL)');
     console.log('2. Check the "Login as Administrator" checkbox');
     console.log('3. Use the email and password shown above\n');
-    
+
   } catch (error) {
     if (error.code === 'P2002') {
       console.error('❌ Error: An admin with email "admin@test.com" already exists!');
       console.error('\nTrying to fetch existing admin details...\n');
-      
+
       // Try to fetch the existing admin
       const existingAdmin = await prisma.user.findUnique({
         where: { email: TEST_ADMIN.email }
       });
-      
+
       if (existingAdmin) {
         console.log('📧 Existing admin found:');
         console.log(`- Email: ${existingAdmin.email}`);

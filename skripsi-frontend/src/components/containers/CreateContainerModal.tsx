@@ -156,19 +156,26 @@ export default function CreateContainerModal({
                     {/* User Selection */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Select User *
+                        Select Student (Mahasiswa) *
                       </label>
                       <select
-                        {...register('userContainer', { required: 'User is required' })}
+                        {...register('userContainer', { required: 'Student selection is required' })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">Select a user...</option>
-                        {users.map((user) => (
-                          <option key={user.id} value={user.id}>
-                            {user.fullName} ({user.email})
-                          </option>
-                        ))}
+                        <option value="">Select a student...</option>
+                        {users
+                          .filter((user) => user.isMahasiswa) // Only show students
+                          .map((user) => (
+                            <option key={user.id} value={user.id}>
+                              {user.fullName} ({user.email})
+                            </option>
+                          ))}
                       </select>
+                      {users.filter((user) => user.isMahasiswa).length === 0 && (
+                        <p className="mt-1 text-sm text-yellow-600">
+                          No students available. Please create a student account first.
+                        </p>
+                      )}
                       {errors.userContainer && (
                         <p className="mt-1 text-sm text-red-600">{errors.userContainer.message}</p>
                       )}
