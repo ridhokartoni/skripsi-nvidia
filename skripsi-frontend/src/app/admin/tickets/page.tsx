@@ -21,8 +21,8 @@ interface Ticket {
   id: number;
   deskripsi: string;
   status: string;
-  containerId: number;
-  container: {
+  containerId: number | null;
+  container?: {
     id: number;
     name: string;
     user: {
@@ -31,7 +31,7 @@ interface Ticket {
       fullName: string;
       noHp?: string; // phone
     };
-  };
+  } | null;
 }
 
 export default function AdminTicketsPage() {
@@ -261,17 +261,23 @@ export default function AdminTicketsPage() {
                         <div className="flex items-center">
                           <ServerIcon className="h-5 w-5 text-gray-400 mr-2" />
                           <div className="text-sm font-medium text-gray-900">
-                            {ticket.container?.name || 'Unknown Container'}
+                            {ticket.container ? ticket.container.name : (
+                              <span className="text-gray-500 italic">Container Deleted</span>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            {ticket.container?.user?.fullName || 'Unknown User'}
+                            {ticket.container?.user?.fullName || (
+                              <span className="text-gray-500 italic">N/A</span>
+                            )}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {ticket.container?.user?.email || 'No email'}
+                            {ticket.container?.user?.email || (
+                              <span className="italic">No container data</span>
+                            )}
                           </div>
                           {ticket.container?.user?.noHp && (
                             <div className="text-sm text-gray-500">

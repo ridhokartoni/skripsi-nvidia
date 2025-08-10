@@ -33,9 +33,15 @@ function updateTiketStatus(id, status) {
 function getTiketByUserId(userId) {
   return db.Tiket.findMany({
     where: {
-      container: {
-        userId,
-      },
+      OR: [
+        {
+          container: {
+            userId,
+          },
+        },
+        // Also include tickets where container was deleted (null) if needed
+        // You might want to exclude these or handle them differently
+      ]
     },
     include: {
       container: true

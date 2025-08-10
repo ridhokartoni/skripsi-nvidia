@@ -71,8 +71,8 @@ model Tiket {
   id            Int           @id @unique @default(autoincrement())
   deskripsi     String        
   status        String 
-  containerId   Int           
-  container     Container     @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  containerId   Int?          // Made optional to allow null values
+  container     Container?    @relation(fields: [containerId], references: [id], onDelete: SetNull)
 }
 
 model GPU {

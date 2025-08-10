@@ -78,18 +78,28 @@ router.patch('/:tiketId', isAuthenticated, async (req, res, next) => {
         }
 
         const tiket = await getTiketById(tiketId);
-        //get container by tiket
-        const container = await getContainerById(tiket.containerId);
-        if (!container) {
+        if (!tiket) {
             res.status(404);
-            throw new Error('Container tidak ditemukan.');
+            throw new Error('Tiket tidak ditemukan.');
         }
-        //check if the container is this user's container or isAdmin true in that user
-        if (container.userId !== userId) {
+        
+        // Check permissions
+        // If ticket has a container, check if user owns it or is admin
+        if (tiket.containerId) {
+            const container = await getContainerById(tiket.containerId);
+            if (container && container.userId !== userId) {
+                const user = await findUserById(userId);
+                if (!user.isAdmin) {
+                    res.status(403);
+                    throw new Error('Anda tidak memiliki akses untuk melakukan ini.');
+                }
+            }
+        } else {
+            // If ticket has no container (container was deleted), only admin can update
             const user = await findUserById(userId);
             if (!user.isAdmin) {
                 res.status(403);
-                throw new Error('Anda tidak memiliki akses untuk melakukan ini.');
+                throw new Error('Anda tidak memiliki akses untuk melakukan ini. Container telah dihapus.');
             }
         }
 
