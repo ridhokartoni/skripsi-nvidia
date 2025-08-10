@@ -5,6 +5,8 @@
 .env.*
 *.env
 !.env.example
+# Ignore local example with real values
+.env.example.local
 
 # Node modules
 node_modules/
