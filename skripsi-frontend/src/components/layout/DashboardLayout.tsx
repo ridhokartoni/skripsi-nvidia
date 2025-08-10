@@ -103,7 +103,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </button>
                   </div>
                 </Transition.Child>
-                
+
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center">
                     <h1 className="text-xl font-bold text-gray-900">
@@ -127,9 +127,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 `}
                               >
                                 <item.icon
-                                  className={`h-6 w-6 shrink-0 ${
-                                    pathname === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'
-                                  }`}
+                                  className={`h-6 w-6 shrink-0 ${pathname === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'
+                                    }`}
                                   aria-hidden="true"
                                 />
                                 {item.name}
@@ -187,9 +186,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         `}
                       >
                         <item.icon
-                          className={`h-6 w-6 shrink-0 ${
-                            pathname.startsWith(item.href) ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'
-                          }`}
+                          className={`h-6 w-6 shrink-0 ${pathname.startsWith(item.href) ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'
+                            }`}
                           aria-hidden="true"
                         />
                         {item.name}

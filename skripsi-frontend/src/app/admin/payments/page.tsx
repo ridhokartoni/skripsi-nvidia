@@ -50,6 +50,7 @@ export default function AdminPaymentsPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   useEffect(() => {
+    if (user === null) return; // wait for store hydration
     if (!user?.isAdmin) {
       router.push('/login');
       return;

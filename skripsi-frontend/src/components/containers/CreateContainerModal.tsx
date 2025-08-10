@@ -56,8 +56,10 @@ export default function CreateContainerModal({
     (async () => {
       try {
         const res = await gpuApi.getAllGPUs();
-        const list = (res.data?.data || []) as Array<{ id: number; name: string }>;
-        const opts = list.map((gpu, idx) => ({ label: `${gpu.name} (device ${idx})`, value: `device=${idx}` }));
+        const list = (res.data?.data || []) as Array<{ id: number; name: string; deviceId?: number }>;
+        const opts = list
+          .filter(gpu => typeof gpu.deviceId === 'number')
+          .map((gpu) => ({ label: `${gpu.name} (device ${gpu.deviceId})`, value: `device=${gpu.deviceId}` }));
         setGpuOptions([{ label: 'None', value: 'none' }, { label: 'All', value: 'all' }, ...opts]);
       } catch (e) {
         // fallback options

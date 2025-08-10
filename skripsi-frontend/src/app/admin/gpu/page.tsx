@@ -17,6 +17,7 @@ import {
 interface GPU {
   id: number;
   name: string;
+  deviceId?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,7 +30,7 @@ export default function AdminGPUPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedGpu, setSelectedGpu] = useState<GPU | null>(null);
-  const [formData, setFormData] = useState({ name: '' });
+  const [formData, setFormData] = useState({ name: '', deviceId: '' });
 
   // Live discovery (read-only)
   const [discovery, setDiscovery] = useState<any[]>([]);
@@ -43,6 +44,7 @@ export default function AdminGPUPage() {
   const [topoLoading, setTopoLoading] = useState(false);
 
   useEffect(() => {
+    if (user === null) return; // wait for hydration
     if (!user?.isAdmin) {
       router.push('/login');
       return;
@@ -112,12 +114,16 @@ export default function AdminGPUPage() {
       toast.error('GPU name is required');
       return;
     }
+    if (formData.deviceId.trim() === '' || isNaN(parseInt(formData.deviceId))) {
+      toast.error('Valid device ID is required (e.g., 0, 1, 2)');
+      return;
+    }
 
     try {
-      await gpuApi.createGPU({ name: formData.name });
+      await gpuApi.createGPU({ name: formData.name, deviceId: parseInt(formData.deviceId) });
       toast.success('GPU added successfully');
       setShowAddModal(false);
-      setFormData({ name: '' });
+      setFormData({ name: '', deviceId: '' });
       fetchGPUs();
     } catch (error) {
       console.error('Error adding GPU:', error);
@@ -130,11 +136,15 @@ export default function AdminGPUPage() {
     if (!selectedGpu || !formData.name.trim()) return;
 
     try {
-      await gpuApi.updateGPU(selectedGpu.id, { name: formData.name });
+      const payload: any = { name: formData.name };
+      if (formData.deviceId.trim() !== '' && !isNaN(parseInt(formData.deviceId))) {
+        payload.deviceId = parseInt(formData.deviceId);
+      }
+      await gpuApi.updateGPU(selectedGpu.id, payload);
       toast.success('GPU updated successfully');
       setShowEditModal(false);
       setSelectedGpu(null);
-      setFormData({ name: '' });
+      setFormData({ name: '', deviceId: '' });
       fetchGPUs();
     } catch (error) {
       console.error('Error updating GPU:', error);
@@ -157,7 +167,7 @@ export default function AdminGPUPage() {
 
   const openEditModal = (gpu: GPU) => {
     setSelectedGpu(gpu);
-    setFormData({ name: gpu.name });
+    setFormData({ name: gpu.name, deviceId: typeof gpu.deviceId === 'number' ? String(gpu.deviceId) : '' });
     setShowEditModal(true);
   };
 
@@ -220,6 +230,9 @@ export default function AdminGPUPage() {
                       <div>
                         <h3 className="font-semibold text-gray-900">{gpu.name}</h3>
                         <p className="text-sm text-gray-500">ID: {gpu.id}</p>
+                        {typeof (gpu as any).deviceId === 'number' && (
+                          <p className="text-sm text-gray-500">Device: {gpu.deviceId}</p>
+                        )}
                         <p className="text-xs text-gray-400 mt-1">
                           Added: {new Date(gpu.createdAt).toLocaleDateString()}
                         </p>
@@ -390,7 +403,7 @@ export default function AdminGPUPage() {
                 <button
                   onClick={() => {
                     setShowAddModal(false);
-                    setFormData({ name: '' });
+                    setFormData({ name: '', deviceId: '' });
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
@@ -405,18 +418,54 @@ export default function AdminGPUPage() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ name: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., NVIDIA RTX 3080"
+                    placeholder="e.g., NVIDIA DGX A100"
                     required
                   />
+                  <p className="mt-1 text-xs text-gray-500">Tip: Click a suggestion below to auto-fill name and device ID from live discovery.</p>
                 </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Device ID</label>
+                  <input
+                    type="number"
+                    value={formData.deviceId}
+                    onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., 0 or 1"
+                    required
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Device ID corresponds to the GPU index as shown by nvidia-smi.</p>
+                </div>
+
+                {/* Suggestions from discovery */}
+                <div className="mb-4">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Suggestions</div>
+                  <div className="flex flex-wrap gap-2">
+                    {discovery.length === 0 ? (
+                      <span className="text-xs text-gray-500">No live GPUs discovered. Click "Refresh Live GPUs" above first.</span>
+                    ) : (
+                      discovery.map((g: any) => (
+                        <button
+                          key={g.uuid || g.index}
+                          type="button"
+                          onClick={() => setFormData({ name: g.name, deviceId: String(g.index) })}
+                          className="px-2 py-1 text-xs border rounded hover:bg-gray-50"
+                          title={`Set ${g.name} (device ${g.index})`}
+                        >
+                          {g.name} (device {g.index})
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
                     onClick={() => {
                       setShowAddModal(false);
-                      setFormData({ name: '' });
+                      setFormData({ name: '', deviceId: '' });
                     }}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                   >
@@ -444,14 +493,14 @@ export default function AdminGPUPage() {
                   onClick={() => {
                     setShowEditModal(false);
                     setSelectedGpu(null);
-                    setFormData({ name: '' });
+                    setFormData({ name: '', deviceId: '' });
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
-              <form onSubmit={handleEditGPU}>
+                  <form onSubmit={handleEditGPU}>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     GPU Name
@@ -459,10 +508,20 @@ export default function AdminGPUPage() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ name: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="e.g., NVIDIA RTX 3080"
+                    placeholder="e.g., NVIDIA DGX A100"
                     required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Device ID</label>
+                  <input
+                    type="number"
+                    value={formData.deviceId}
+                    onChange={(e) => setFormData({ ...formData, deviceId: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., 0 or 1"
                   />
                 </div>
                 <div className="flex justify-end gap-3">
@@ -471,7 +530,7 @@ export default function AdminGPUPage() {
                     onClick={() => {
                       setShowEditModal(false);
                       setSelectedGpu(null);
-                      setFormData({ name: '' });
+                      setFormData({ name: '', deviceId: '' });
                     }}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                   >

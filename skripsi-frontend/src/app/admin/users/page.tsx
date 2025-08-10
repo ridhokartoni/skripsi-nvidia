@@ -42,6 +42,7 @@ export default function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
+    if (user === null) return; // wait for hydration
     if (!user?.isAdmin) {
       router.push('/login');
       return;

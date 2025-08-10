@@ -77,7 +77,8 @@ model Tiket {
 
 model GPU {
   id            Int           @id @unique @default(autoincrement())
-  name          String        
+  name          String
+  deviceId      Int           @unique
 }
 model RefreshToken {   // gausah pake, tokennya dilamain
   id          String   @id @unique @default(uuid())

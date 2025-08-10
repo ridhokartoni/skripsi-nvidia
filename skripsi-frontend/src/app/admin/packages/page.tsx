@@ -48,6 +48,7 @@ export default function AdminPackagesPage() {
   });
 
   useEffect(() => {
+    if (user === null) return; // wait for hydration
     if (!user?.isAdmin) {
       router.push('/login');
       return;

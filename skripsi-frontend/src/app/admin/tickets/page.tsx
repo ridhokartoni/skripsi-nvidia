@@ -29,6 +29,7 @@ interface Ticket {
       id: number;
       email: string;
       fullName: string;
+      noHp?: string; // phone
     };
   };
 }
@@ -41,6 +42,7 @@ export default function AdminTicketsPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'in_progress' | 'resolved' | 'closed'>('all');
 
   useEffect(() => {
+    if (user === null) return; // wait for hydration
     if (!user?.isAdmin) {
       router.push('/login');
       return;
@@ -271,6 +273,11 @@ export default function AdminTicketsPage() {
                           <div className="text-sm text-gray-500">
                             {ticket.container?.user?.email || 'No email'}
                           </div>
+                          {ticket.container?.user?.noHp && (
+                            <div className="text-sm text-gray-500">
+                              Phone: {ticket.container.user.noHp}
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">

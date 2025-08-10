@@ -19,15 +19,13 @@ function getGpuById(id) {
     },
   });
 }
-//function to update gpu change name
-function updateGpu(id, gpu) {
+//function to update gpu fields (name and/or deviceId)
+function updateGpu(id, data) {
   return db.GPU.update({
     where: {
       id,
     },
-    data: {
-        name: gpu,
-    },
+    data,
   });
 }
 //function to delete gpu

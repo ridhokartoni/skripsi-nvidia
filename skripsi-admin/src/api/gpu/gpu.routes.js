@@ -32,22 +32,28 @@ router.post('/', isAuthenticated, async (req, res) => {
             });
             return;
         }
-        //get name from request body
-        const { name } = req.body;
-        console.log(name);
-        //check if name is empty
-        if (!name) {
+        //get name and deviceId from request body
+        const { name, deviceId } = req.body;
+        //validate
+        if (!name || typeof deviceId === 'undefined') {
             res.status(400).json({
                 data: {},
                 meta:{
                     code: 400,
-                    message: 'Name is required',
+                    message: 'Name and deviceId are required',
                 }
             });
             return;
         }
+        if (Number.isNaN(parseInt(deviceId))) {
+            res.status(400).json({
+                data: {},
+                meta: { code: 400, message: 'deviceId must be an integer device index' }
+            });
+            return;
+        }
 
-        const gpu = await createGpu(req.body);
+        const gpu = await createGpu({ name, deviceId: parseInt(deviceId) });
         res.status(201).json({
             data: gpu,
             meta:{
@@ -189,9 +195,17 @@ router.patch('/:id', isAuthenticated, async (req, res) => {
             });
             return;
         }
-        const { name } = req.body;
-        console.log(name);
-        const newGPU = await updateGpu(gpuId, name);
+        const { name, deviceId } = req.body;
+        const data = {};
+        if (typeof name !== 'undefined') data.name = name;
+        if (typeof deviceId !== 'undefined') {
+            if (Number.isNaN(parseInt(deviceId))) {
+                res.status(400).json({ data: {}, meta: { code: 400, message: 'deviceId must be an integer device index' } });
+                return;
+            }
+            data.deviceId = parseInt(deviceId);
+        }
+        const newGPU = await updateGpu(gpuId, data);
         res.status(200).json({
             data: newGPU,
             meta:{
