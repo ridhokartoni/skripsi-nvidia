@@ -7,8 +7,13 @@ import Providers from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'GPU Container Management System',
-  description: 'Manage GPU-enabled containers for research and development',
+  title: 'IPB University - GPU Container Management System',
+  description: 'IPB University GPU-enabled containers for research and development',
+  icons: {
+    icon: '/ipb-logo.svg',
+    shortcut: '/ipb-logo.svg',
+    apple: '/ipb-logo.svg',
+  },
 };
 
 export default function RootLayout({

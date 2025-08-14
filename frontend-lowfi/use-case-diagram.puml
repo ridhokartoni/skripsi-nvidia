@@ -1,0 +1,150 @@
+@startuml use_case_diagram
+!theme plain
+title Use Case Diagram - Web Application System
+
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam backgroundColor #FEFEFE
+
+skinparam actor {
+    BackgroundColor #E8E8E8
+    BorderColor #333333
+    FontColor #333333
+}
+
+skinparam usecase {
+    BackgroundColor #F5F5F5
+    BorderColor #666666
+    FontColor #333333
+    ArrowColor #666666
+}
+
+skinparam rectangle {
+    BackgroundColor #FFFFFF
+    BorderColor #333333
+    FontColor #333333
+}
+
+' Define actors
+actor "Guest User" as Guest #LightGray
+actor "Registered User" as User #LightBlue
+actor "Administrator" as Admin #LightCoral
+actor "System" as System #LightGreen
+
+' Define system boundary
+rectangle "Web Application System" {
+    ' Authentication Use Cases
+    usecase "Register Account" as UC1
+    usecase "Login" as UC2
+    usecase "Logout" as UC3
+    usecase "Reset Password" as UC4
+    
+    ' Content Management Use Cases
+    usecase "View Content" as UC5
+    usecase "Search Content" as UC6
+    usecase "Filter Content" as UC7
+    usecase "Sort Content" as UC8
+    
+    ' User Interaction Use Cases
+    usecase "Create Post" as UC9
+    usecase "Edit Post" as UC10
+    usecase "Delete Post" as UC11
+    usecase "Comment on Post" as UC12
+    usecase "Like/React to Post" as UC13
+    
+    ' Profile Management Use Cases
+    usecase "View Profile" as UC14
+    usecase "Edit Profile" as UC15
+    usecase "Upload Avatar" as UC16
+    usecase "Manage Settings" as UC17
+    
+    ' Admin Use Cases
+    usecase "Manage Users" as UC18
+    usecase "Moderate Content" as UC19
+    usecase "View Analytics" as UC20
+    usecase "System Configuration" as UC21
+    
+    ' System Use Cases
+    usecase "Send Notifications" as UC22
+    usecase "Generate Reports" as UC23
+    usecase "Backup Data" as UC24
+    usecase "Process Payments" as UC25
+}
+
+' Guest User relationships
+Guest --> UC1 : initiates
+Guest --> UC2 : performs
+Guest --> UC5 : accesses
+Guest --> UC6 : uses
+Guest --> UC4 : requests
+
+' Registered User relationships (inherits from Guest)
+User --> UC3 : performs
+User --> UC5 : accesses
+User --> UC6 : uses
+User --> UC7 : applies
+User --> UC8 : applies
+User --> UC9 : creates
+User --> UC10 : modifies
+User --> UC11 : removes
+User --> UC12 : writes
+User --> UC13 : interacts
+User --> UC14 : views
+User --> UC15 : updates
+User --> UC16 : uploads
+User --> UC17 : configures
+
+' Admin relationships (inherits from User)
+Admin --> UC18 : manages
+Admin --> UC19 : moderates
+Admin --> UC20 : analyzes
+Admin --> UC21 : configures
+
+' System relationships
+System --> UC22 : executes
+System --> UC23 : generates
+System --> UC24 : performs
+System --> UC25 : processes
+
+' Include relationships
+UC9 ..> UC2 : <<include>>
+UC10 ..> UC2 : <<include>>
+UC11 ..> UC2 : <<include>>
+UC12 ..> UC2 : <<include>>
+UC13 ..> UC2 : <<include>>
+UC15 ..> UC2 : <<include>>
+UC16 ..> UC2 : <<include>>
+UC17 ..> UC2 : <<include>>
+
+' Extend relationships
+UC7 ..> UC5 : <<extend>>
+UC8 ..> UC5 : <<extend>>
+UC6 ..> UC5 : <<extend>>
+UC22 ..> UC9 : <<extend>>
+UC22 ..> UC12 : <<extend>>
+UC23 ..> UC20 : <<extend>>
+
+' Inheritance relationships
+User --|> Guest : inherits
+Admin --|> User : inherits
+
+' Notes for clarity
+note right of UC1
+  New users can create
+  an account with email
+  verification
+end note
+
+note right of UC19
+  Admin can approve,
+  reject, or flag
+  user content
+end note
+
+note bottom of UC25
+  Handles subscription
+  and payment processing
+  for premium features
+end note
+
+@enduml

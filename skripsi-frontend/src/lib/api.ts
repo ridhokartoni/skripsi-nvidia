@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
+import { getAuthToken, clearAllAuthData } from '@/lib/auth-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
@@ -13,9 +14,14 @@ export const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Use utility function to get token from any available source
+    const token = getAuthToken();
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // Ensure no stale Authorization header exists
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -38,8 +44,9 @@ api.interceptors.response.use(
                            errorMessage.includes('expired') || errorMessage.includes('Expired');
       
       if (isTokenError) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        // Use comprehensive cleanup utility
+        clearAllAuthData();
+        
         if (typeof window !== 'undefined' && !window.location.pathname.includes('login')) {
           toast.error('Session expired. Please login again.');
           window.location.href = '/login';

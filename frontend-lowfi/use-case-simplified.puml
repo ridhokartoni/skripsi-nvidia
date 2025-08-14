@@ -1,0 +1,88 @@
+@startuml use_case_simplified
+!theme plain
+title Use Case Diagram - Frontend Application
+
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam backgroundColor #FEFEFE
+skinparam linetype ortho
+
+skinparam actor {
+    BackgroundColor #E8E8E8
+    BorderColor #333333
+    FontColor #333333
+}
+
+skinparam usecase {
+    BackgroundColor #F5F5F5
+    BorderColor #666666
+    FontColor #333333
+}
+
+' Define actors
+actor "User" as User
+actor "Admin" as Admin
+
+' Main system boundary
+rectangle "Frontend Web Application" {
+    
+    ' Navigation Use Cases
+    rectangle "Navigation" #F9F9F9 {
+        usecase "Navigate Pages" as UC_Nav1
+        usecase "Use Menu" as UC_Nav2
+        usecase "Access Home" as UC_Nav3
+    }
+    
+    ' Content Display Use Cases
+    rectangle "Content Display" #F9F9F9 {
+        usecase "View Grid Layout" as UC_Content1
+        usecase "View Mixed Layout" as UC_Content2
+        usecase "Expand Cards" as UC_Content3
+        usecase "View Details" as UC_Content4
+    }
+    
+    ' Interactive Features
+    rectangle "Interactive Features" #F9F9F9 {
+        usecase "Filter Content" as UC_Inter1
+        usecase "Sort Content" as UC_Inter2
+        usecase "Select Items" as UC_Inter3
+        usecase "Use Sidebar" as UC_Inter4
+    }
+    
+    ' User Actions
+    rectangle "User Actions" #F9F9F9 {
+        usecase "Click Buttons" as UC_Action1
+        usecase "Open Modal" as UC_Action2
+        usecase "Submit Forms" as UC_Action3
+        usecase "Toggle Panels" as UC_Action4
+    }
+}
+
+' User relationships
+User --> UC_Nav1
+User --> UC_Nav2
+User --> UC_Nav3
+User --> UC_Content1
+User --> UC_Content2
+User --> UC_Content3
+User --> UC_Content4
+User --> UC_Inter1
+User --> UC_Inter2
+User --> UC_Inter3
+User --> UC_Inter4
+User --> UC_Action1
+User --> UC_Action2
+User --> UC_Action3
+User --> UC_Action4
+
+' Admin inherits all user actions
+Admin --|> User : inherits
+
+' Dependencies
+UC_Inter1 ..> UC_Content1 : <<extend>>
+UC_Inter2 ..> UC_Content1 : <<extend>>
+UC_Content3 ..> UC_Content4 : <<include>>
+UC_Action2 ..> UC_Action1 : <<extend>>
+UC_Inter4 ..> UC_Content2 : <<extend>>
+
+@enduml

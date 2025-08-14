@@ -6,7 +6,7 @@ import { userApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
-import { 
+import {
   UserCircleIcon,
   EnvelopeIcon,
   PhoneIcon,
@@ -106,9 +106,9 @@ export default function UserProfilePage() {
           response = await userApi.updateUser(profile.id, formData);
         }
       }
-      
+
       const updatedUser = response.data.data;
-      
+
       setProfile(updatedUser);
       updateAuthUser(updatedUser);
       setEditMode(false);
@@ -166,11 +166,10 @@ export default function UserProfilePage() {
           {isUpdateSupported && (
             <button
               onClick={editMode ? handleSaveProfile : handleEditToggle}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                editMode 
-                  ? 'bg-green-600 text-white hover:bg-green-700' 
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${editMode
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
             >
               {editMode ? (
                 <>
@@ -248,7 +247,7 @@ export default function UserProfilePage() {
         {/* Profile Information */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Full Name */}
             <div>
@@ -299,7 +298,7 @@ export default function UserProfilePage() {
               )}
             </div>
 
-            {/* NIK */}
+            {/* NIK/NIM */}
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
                 <IdentificationIcon className="h-4 w-4 text-gray-400" />
@@ -311,7 +310,7 @@ export default function UserProfilePage() {
                   value={formData.nik}
                   onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter NIK"
+                  placeholder="Enter NIK/NIM"
                 />
               ) : (
                 <p className="text-gray-900">{profile.nik || '-'}</p>
@@ -353,7 +352,7 @@ export default function UserProfilePage() {
         {/* Account Information */}
         <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Account Information</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="text-sm font-medium text-gray-700 mb-2 block">
@@ -390,7 +389,7 @@ export default function UserProfilePage() {
         {/* Security Settings */}
         <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Security</h3>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-200">
               <div>

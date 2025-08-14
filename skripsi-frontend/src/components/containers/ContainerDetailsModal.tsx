@@ -2,8 +2,9 @@ import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Container, ContainerStats } from '@/types';
 import { containerApi } from '@/lib/api';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import SSHGuideModal from './SSHGuideModal';
 
 interface ContainerDetailsModalProps {
   container: Container;
@@ -23,6 +24,7 @@ export default function ContainerDetailsModal({
   const [newPassword, setNewPassword] = useState('');
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   // Track the latest password for display in the Access tab
   const [displayPassword, setDisplayPassword] = useState<string>(container.password);
 
@@ -105,7 +107,8 @@ export default function ContainerDetailsModal({
   };
 
   return (
-    <Transition.Root show={isOpen} as={Fragment}>
+    <>
+      <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
         <Transition.Child
           as={Fragment}
@@ -255,8 +258,27 @@ export default function ContainerDetailsModal({
 
                     {activeTab === 'access' && (
                       <div className="space-y-4">
+                        {/* Guide Link */}
+                        <div className="flex justify-end mb-2">
+                          <button
+                            onClick={() => setShowGuide(true)}
+                            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                          >
+                            <QuestionMarkCircleIcon className="h-5 w-5 mr-1" />
+                            How to Connect & Reset Password
+                          </button>
+                        </div>
+
                         <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-gray-900 mb-2">SSH Access</h4>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-sm font-medium text-gray-900">SSH Access</h4>
+                            <button
+                              onClick={() => setShowGuide(true)}
+                              className="text-xs text-gray-500 hover:text-gray-700 underline"
+                            >
+                              Need help?
+                            </button>
+                          </div>
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <code className="text-sm bg-white px-3 py-1 rounded border">
@@ -274,13 +296,24 @@ export default function ContainerDetailsModal({
                         </div>
 
                         <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="text-sm font-medium text-gray-900 mb-2">Jupyter Notebook</h4>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-sm font-medium text-gray-900">Jupyter Notebook</h4>
+                            <button
+                              onClick={() => setShowGuide(true)}
+                              className="text-xs text-gray-500 hover:text-gray-700 underline"
+                            >
+                              Reset password?
+                            </button>
+                          </div>
                           <button
                             onClick={fetchJupyterLink}
                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
                           >
                             Open Jupyter Notebook
                           </button>
+                          <p className="text-xs text-gray-500 mt-2">
+                            Default password is same as SSH. Click "Reset password?" for instructions to change it.
+                          </p>
                         </div>
                       </div>
                     )}
@@ -315,5 +348,14 @@ export default function ContainerDetailsModal({
         </div>
       </Dialog>
     </Transition.Root>
+
+    {/* SSH Guide Modal */}
+    <SSHGuideModal
+      isOpen={showGuide}
+      onClose={() => setShowGuide(false)}
+      sshPort={container.sshPort.toString()}
+      password={displayPassword}
+    />
+    </>
   );
 }

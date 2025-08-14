@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Low-Fi Frontend Design</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <div class="nav-left">
+                    <span class="logo-placeholder">Logo</span>
+                </div>
+                <div class="nav-center">
+                    <ul class="nav-menu">
+                        <li><a href="#" class="nav-link">Home</a></li>
+                        <li><a href="#" class="nav-link">About</a></li>
+                        <li><a href="#" class="nav-link">Services</a></li>
+                        <li><a href="#" class="nav-link">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="nav-right">
+                    <button class="btn-primary">Action</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Layout Version A - Payment Page -->
+        <section class="layout-a payment-page" id="layout-a">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Payment Checkout</h2>
+                    <div class="section-controls">
+                        <span class="security-badge">🔒 Secure Payment</span>
+                    </div>
+                </div>
+                
+                <div class="payment-container">
+                    <!-- Payment Form Section -->
+                    <div class="payment-form-section">
+                        <!-- Order Summary -->
+                        <div class="content-block order-summary">
+                            <div class="block-header">
+                                <span class="block-title">Order Summary</span>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-item">
+                                    <span class="item-label">Product Name</span>
+                                    <span class="item-value">$XX.XX</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="item-label">Shipping</span>
+                                    <span class="item-value">$X.XX</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="item-label">Tax</span>
+                                    <span class="item-value">$X.XX</span>
+                                </div>
+                                <div class="summary-divider"></div>
+                                <div class="summary-item total">
+                                    <span class="item-label">Total</span>
+                                    <span class="item-value">$XXX.XX</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Method Selection -->
+                        <div class="content-block payment-method">
+                            <div class="block-header">
+                                <span class="block-title">Payment Method</span>
+                            </div>
+                            <div class="payment-options">
+                                <label class="payment-option">
+                                    <input type="radio" name="payment" value="card" checked>
+                                    <span class="option-content">
+                                        <span class="option-icon">💳</span>
+                                        <span class="option-text">Credit/Debit Card</span>
+                                    </span>
+                                </label>
+                                <label class="payment-option">
+                                    <input type="radio" name="payment" value="paypal">
+                                    <span class="option-content">
+                                        <span class="option-icon">🅿️</span>
+                                        <span class="option-text">PayPal</span>
+                                    </span>
+                                </label>
+                                <label class="payment-option">
+                                    <input type="radio" name="payment" value="bank">
+                                    <span class="option-content">
+                                        <span class="option-icon">🏦</span>
+                                        <span class="option-text">Bank Transfer</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Details Form -->
+                        <div class="content-block card-details">
+                            <div class="block-header">
+                                <span class="block-title">Card Information</span>
+                            </div>
+                            <form class="payment-form">
+                                <div class="form-group">
+                                    <label class="form-label">Card Number</label>
+                                    <input type="text" class="form-input" placeholder="XXXX XXXX XXXX XXXX">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Expiry Date</label>
+                                        <input type="text" class="form-input" placeholder="MM/YY">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">CVV</label>
+                                        <input type="text" class="form-input" placeholder="XXX">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Cardholder Name</label>
+                                    <input type="text" class="form-input" placeholder="Name on Card">
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Billing Address -->
+                        <div class="content-block billing-address">
+                            <div class="block-header">
+                                <span class="block-title">Billing Address</span>
+                            </div>
+                            <form class="address-form">
+                                <div class="form-group">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-input" placeholder="Enter full name">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-input" placeholder="email@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Street Address</label>
+                                    <input type="text" class="form-input" placeholder="123 Main St">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">City</label>
+                                        <input type="text" class="form-input" placeholder="City">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Postal Code</label>
+                                        <input type="text" class="form-input" placeholder="12345">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Country</label>
+                                    <select class="form-input">
+                                        <option>Select Country</option>
+                                        <option>United States</option>
+                                        <option>Canada</option>
+                                        <option>United Kingdom</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Payment Actions -->
+                        <div class="payment-actions">
+                            <button class="btn-secondary btn-large">← Back to Cart</button>
+                            <button class="btn-primary btn-large">Complete Payment →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Layout Version B - Mixed layout with hero and content blocks -->
+        <section class="layout-b" id="layout-b">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Section B - Mixed Layout</h2>
+                    <div class="badge-container">
+                        <span class="badge">Featured</span>
+                    </div>
+                </div>
+                
+                <!-- Hero/Featured Block with X pattern -->
+                <div class="hero-block">
+                    <div class="x-pattern">
+                        <div class="diagonal-line diagonal-1"></div>
+                        <div class="diagonal-line diagonal-2"></div>
+                        <div class="hero-content">
+                            <h3 class="hero-title">Featured Content</h3>
+                            <p class="hero-description">This is a prominent featured section</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Secondary content blocks -->
+                <div class="secondary-grid">
+                    <div class="content-block-secondary">
+                        <div class="placeholder-content">
+                            <span class="placeholder-text">Secondary Block 1</span>
+                            <div class="horizontal-lines"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="content-block-secondary">
+                        <div class="placeholder-content">
+                            <span class="placeholder-text">Secondary Block 2</span>
+                            <div class="horizontal-lines"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Additional Section for flexibility -->
+        <section class="additional-section">
+            <div class="container">
+                <div class="flex-layout">
+                    <div class="sidebar">
+                        <h3 class="sidebar-title">Sidebar</h3>
+                        <ul class="sidebar-menu">
+                            <li class="sidebar-item">Item 1</li>
+                            <li class="sidebar-item">Item 2</li>
+                            <li class="sidebar-item">Item 3</li>
+                            <li class="sidebar-item">Item 4</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="main-area">
+                        <div class="card-grid">
+                            <div class="card">
+                                <div class="card-header">Card 1</div>
+                                <div class="card-body">
+                                    <div class="placeholder-lines"></div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header">Card 2</div>
+                                <div class="card-body">
+                                    <div class="placeholder-lines"></div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header">Card 3</div>
+                                <div class="card-body">
+                                    <div class="placeholder-lines"></div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header">Card 4</div>
+                                <div class="card-body">
+                                    <div class="placeholder-lines"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Section 1</h4>
+                    <ul>
+                        <li><a href="#">Link 1</a></li>
+                        <li><a href="#">Link 2</a></li>
+                        <li><a href="#">Link 3</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Section 2</h4>
+                    <ul>
+                        <li><a href="#">Link 1</a></li>
+                        <li><a href="#">Link 2</a></li>
+                        <li><a href="#">Link 3</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Section 3</h4>
+                    <ul>
+                        <li><a href="#">Link 1</a></li>
+                        <li><a href="#">Link 2</a></li>
+                        <li><a href="#">Link 3</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Low-Fi Design. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

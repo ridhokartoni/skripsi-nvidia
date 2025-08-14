@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User } from '@/types';
+import { clearAllAuthData } from '@/lib/auth-utils';
 
 // Helper functions for cookie management
 const setCookie = (name: string, value: string, days: number = 7) => {
@@ -39,9 +40,17 @@ export const useAuthStore = create<AuthState>()(
       isHydrated: false,
       
       setAuth: (token, user) => {
+        // Clear any existing auth data first to prevent conflicts
+        clearAllAuthData();
+        
+        // Store the new auth data
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(user));
+          localStorage.setItem('isAdmin', user.isAdmin.toString());
           setCookie('token', token);
+          setCookie('user', JSON.stringify(user));
+          setCookie('isAdmin', user.isAdmin.toString());
         }
         set({
           token,
@@ -52,11 +61,10 @@ export const useAuthStore = create<AuthState>()(
       },
       
       logout: () => {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          removeCookie('token');
-        }
+        // Use comprehensive cleanup utility
+        clearAllAuthData();
+        
+        // Reset the store state
         set({
           token: null,
           user: null,

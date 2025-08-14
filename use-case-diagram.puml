@@ -1,0 +1,129 @@
+@startuml GPU_Container_Platform_Use_Case
+
+!define RECTANGLE class
+
+' Set vertical orientation
+!define DIRECTION top to bottom direction
+DIRECTION
+
+' Define actors
+actor "User" as User
+actor "Admin" as Admin
+
+' System boundary
+rectangle "GPU Container Platform" {
+    
+    ' Authentication Use Cases
+    usecase "Register Account" as UC_Register
+    usecase "Login" as UC_Login
+    usecase "View Profile" as UC_Profile
+    
+    ' Package Management Use Cases
+    usecase "Browse Available Packages" as UC_BrowsePackages
+    usecase "View Package Details" as UC_ViewPackageDetails
+    usecase "Compare Packages" as UC_ComparePackages
+    usecase "Manage Packages" as UC_ManagePackages
+    
+    ' Payment Use Cases
+    usecase "Create Payment Request" as UC_CreatePayment
+    usecase "View My Payments" as UC_ViewMyPayments
+    usecase "View Payment Status" as UC_PaymentStatus
+    usecase "Review All Payments" as UC_ReviewPayments
+    usecase "Approve Payment" as UC_ApprovePayment
+    usecase "Reject Payment" as UC_RejectPayment
+    
+    ' Container Management Use Cases
+    usecase "View My Containers" as UC_ViewMyContainers
+    usecase "View Container Details" as UC_ContainerDetails
+    usecase "Access Container SSH" as UC_SSHAccess
+    usecase "Restart Container" as UC_RestartContainer
+    usecase "Reset Container" as UC_ResetContainer
+    usecase "View All Containers" as UC_ViewAllContainers
+    usecase "Create Container" as UC_CreateContainer
+    usecase "Start Container" as UC_StartContainer
+    usecase "Stop Container" as UC_StopContainer
+    usecase "Delete Container" as UC_DeleteContainer
+    
+    ' User Management Use Cases (Admin)
+    usecase "View All Users" as UC_ViewUsers
+    usecase "Edit User Details" as UC_EditUser
+    usecase "Delete User" as UC_DeleteUser
+    usecase "Filter Users by Role" as UC_FilterUsers
+    
+    ' Dashboard & Monitoring
+    usecase "View User Dashboard" as UC_UserDashboard
+    usecase "View Admin Dashboard" as UC_AdminDashboard
+    usecase "Monitor System Status" as UC_SystemStatus
+    usecase "View Platform Statistics" as UC_Statistics
+    usecase "Monitor GPU Usage" as UC_GPUMonitoring
+    
+    ' Settings
+    usecase "Manage Settings" as UC_Settings
+}
+
+' User relationships
+User --> UC_Register
+User --> UC_Login
+User --> UC_Profile
+User --> UC_BrowsePackages
+User --> UC_ViewPackageDetails
+User --> UC_ComparePackages
+User --> UC_CreatePayment
+User --> UC_ViewMyPayments
+User --> UC_PaymentStatus
+User --> UC_ViewMyContainers
+User --> UC_ContainerDetails
+User --> UC_SSHAccess
+User --> UC_RestartContainer
+User --> UC_ResetContainer
+User --> UC_UserDashboard
+
+' Admin relationships
+Admin --> UC_Login
+Admin --> UC_Profile
+Admin --> UC_ManagePackages
+Admin --> UC_ReviewPayments
+Admin --> UC_ApprovePayment
+Admin --> UC_RejectPayment
+Admin --> UC_ViewAllContainers
+Admin --> UC_CreateContainer
+Admin --> UC_StartContainer
+Admin --> UC_StopContainer
+Admin --> UC_DeleteContainer
+Admin --> UC_ViewUsers
+Admin --> UC_EditUser
+Admin --> UC_DeleteUser
+Admin --> UC_FilterUsers
+Admin --> UC_AdminDashboard
+Admin --> UC_SystemStatus
+Admin --> UC_Statistics
+Admin --> UC_GPUMonitoring
+Admin --> UC_Settings
+
+' Include relationships
+UC_CreatePayment ..> UC_BrowsePackages : <<include>>
+UC_ApprovePayment ..> UC_CreateContainer : <<include>>
+UC_ContainerDetails ..> UC_SSHAccess : <<extend>>
+UC_AdminDashboard ..> UC_Statistics : <<include>>
+UC_UserDashboard ..> UC_ViewMyContainers : <<include>>
+UC_UserDashboard ..> UC_ViewMyPayments : <<include>>
+
+' Notes
+note bottom of UC_CreatePayment
+  User selects a package
+  and submits payment with
+  research purpose
+end note
+
+note bottom of UC_ApprovePayment
+  After approval, admin can
+  create container for user
+end note
+
+note bottom of UC_SSHAccess
+  Users get SSH credentials
+  to access their containers
+  with root privileges
+end note
+
+@enduml

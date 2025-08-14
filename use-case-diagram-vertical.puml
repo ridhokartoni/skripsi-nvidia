@@ -1,0 +1,119 @@
+@startuml GPU_Container_Platform_Vertical
+
+' Force vertical layout
+!define DIRECTION top to bottom direction
+DIRECTION
+
+skinparam usecase {
+    BackgroundColor<<user>> LightGreen
+    BackgroundColor<<admin>> LightCoral
+    BackgroundColor<<both>> LightBlue
+    BorderColor DarkBlue
+    BorderThickness 2
+}
+
+skinparam actor {
+    BackgroundColor White
+    BorderColor Black
+    BorderThickness 2
+}
+
+skinparam rectangle {
+    BackgroundColor AliceBlue
+    BorderColor Navy
+    BorderThickness 2
+}
+
+' Position actors at the top
+actor "Regular\nUser" as User
+actor "System\nAdministrator" as Admin
+
+' System boundary
+rectangle "**GPU Container Platform**" {
+    
+    together {
+        usecase "Register" as UC_Register <<user>>
+        usecase "Login" as UC_Login <<both>>
+    }
+    
+    together {
+        usecase "Browse\nPackages" as UC_Browse <<user>>
+        usecase "Select\nPackage" as UC_Select <<user>>
+        usecase "Manage\nPackages" as UC_ManagePkg <<admin>>
+    }
+    
+    together {
+        usecase "Request\nPayment" as UC_RequestPay <<user>>
+        usecase "View My\nPayments" as UC_ViewPay <<user>>
+        usecase "Review\nPayments" as UC_ReviewPay <<admin>>
+        usecase "Approve/Reject\nPayment" as UC_ApprovePay <<admin>>
+    }
+    
+    together {
+        usecase "View My\nContainers" as UC_MyContainers <<user>>
+        usecase "SSH\nAccess" as UC_SSH <<user>>
+        usecase "Restart/Reset" as UC_Restart <<user>>
+    }
+    
+    together {
+        usecase "Create\nContainer" as UC_CreateCont <<admin>>
+        usecase "Manage All\nContainers" as UC_ManageCont <<admin>>
+        usecase "Start/Stop\nContainers" as UC_StartStop <<admin>>
+    }
+    
+    together {
+        usecase "User\nDashboard" as UC_UserDash <<user>>
+        usecase "Admin\nDashboard" as UC_AdminDash <<admin>>
+    }
+    
+    together {
+        usecase "Manage\nUsers" as UC_ManageUsers <<admin>>
+        usecase "View\nStatistics" as UC_Stats <<admin>>
+        usecase "Monitor\nGPU" as UC_GPU <<admin>>
+    }
+}
+
+' User connections (green use cases)
+User -down-> UC_Register
+User -down-> UC_Login
+User -down-> UC_Browse
+User -down-> UC_Select
+User -down-> UC_RequestPay
+User -down-> UC_ViewPay
+User -down-> UC_MyContainers
+User -down-> UC_SSH
+User -down-> UC_Restart
+User -down-> UC_UserDash
+
+' Admin connections (red use cases)
+Admin -down-> UC_Login
+Admin -down-> UC_ManagePkg
+Admin -down-> UC_ReviewPay
+Admin -down-> UC_ApprovePay
+Admin -down-> UC_CreateCont
+Admin -down-> UC_ManageCont
+Admin -down-> UC_StartStop
+Admin -down-> UC_AdminDash
+Admin -down-> UC_ManageUsers
+Admin -down-> UC_Stats
+Admin -down-> UC_GPU
+
+' Dependencies
+UC_Select ..> UC_RequestPay : <<flow>>
+UC_ApprovePay ..> UC_CreateCont : <<triggers>>
+UC_MyContainers ..> UC_SSH : <<includes>>
+UC_AdminDash ..> UC_Stats : <<includes>>
+UC_UserDash ..> UC_MyContainers : <<includes>>
+
+' Add color legend
+legend bottom center
+  |= Color |= Actor |= Description |
+  | <#90EE90> | User | User-only features |
+  | <#F08080> | Admin | Admin-only features |
+  | <#ADD8E6> | Both | Shared features |
+  |= Symbol |= Meaning |
+  | —> | Can use |
+  | ..> | Dependency |
+endlegend
+
+@enduml

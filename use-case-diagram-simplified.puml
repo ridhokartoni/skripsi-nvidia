@@ -1,0 +1,94 @@
+@startuml GPU_Container_Platform_Simplified
+
+' Set vertical layout
+top to bottom direction
+
+skinparam packageStyle rectangle
+skinparam usecase {
+    BackgroundColor LightBlue
+    BorderColor DarkBlue
+}
+skinparam actor {
+    BackgroundColor White
+    BorderColor Black
+}
+
+' Define actors with stereotypes
+actor "Regular User" as User <<Regular>>
+actor "Administrator" as Admin <<Admin>>
+
+' System boundary
+package "GPU Container Platform" {
+    
+    ' Core User Features
+    package "Authentication" #LightYellow {
+        usecase "Register" as UC1
+        usecase "Login" as UC2
+    }
+    
+    package "Package Management" #LightGreen {
+        usecase "Browse Packages" as UC3
+        usecase "Select Package" as UC4
+    }
+    
+    package "Payment Processing" #LightCyan {
+        usecase "Submit Payment\nRequest" as UC5
+        usecase "Track Payment\nStatus" as UC6
+        usecase "Approve/Reject\nPayments" as UC7
+    }
+    
+    package "Container Management" #LightPink {
+        usecase "Manage My\nContainers" as UC8
+        usecase "SSH Access" as UC9
+        usecase "Restart/Reset\nContainer" as UC10
+        usecase "Create New\nContainer" as UC11
+        usecase "Manage All\nContainers" as UC12
+    }
+    
+    package "User Management" #Lavender {
+        usecase "Manage Users" as UC13
+        usecase "View User\nStatistics" as UC14
+    }
+    
+    package "Dashboard" #LightGray {
+        usecase "User Dashboard" as UC15
+        usecase "Admin Dashboard" as UC16
+    }
+}
+
+' User connections
+User --> UC1 : register
+User --> UC2 : authenticate
+User --> UC3 : browse
+User --> UC4 : select
+User --> UC5 : request
+User --> UC6 : monitor
+User --> UC8 : manage
+User --> UC9 : access
+User --> UC10 : control
+User --> UC15 : view
+
+' Admin connections
+Admin --> UC2 : authenticate
+Admin --> UC7 : review
+Admin --> UC11 : create
+Admin --> UC12 : administrate
+Admin --> UC13 : manage
+Admin --> UC14 : analyze
+Admin --> UC16 : monitor
+
+' Dependencies
+UC4 ..> UC5 : <<leads to>>
+UC7 ..> UC11 : <<triggers>>
+UC8 ..> UC9 : <<includes>>
+
+' Add legend
+legend bottom
+  |= Symbol |= Description |
+  | User | Regular platform user |
+  | Admin | System administrator |
+  | --> | Direct interaction |
+  | ..> | Dependency/Flow |
+endlegend
+
+@enduml
