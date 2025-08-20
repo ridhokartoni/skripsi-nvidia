@@ -30,7 +30,7 @@ const userNavigation = [
   { name: 'Dashboard', href: '/user', icon: HomeIcon },
   { name: 'My Containers', href: '/user/containers', icon: ServerStackIcon },
   { name: 'Payments', href: '/user/payments', icon: CreditCardIcon },
-  //{ name: 'Support Tickets', href: '/user/tickets', icon: TicketIcon },
+  { name: 'Support Tickets', href: '/user/tickets', icon: TicketIcon },
   { name: 'Packages', href: '/user/packages', icon: CubeIcon },
   { name: 'Profile', href: '/user/profile', icon: UserCircleIcon },
 ];
@@ -41,7 +41,7 @@ const adminNavigation = [
   { name: 'All Containers', href: '/admin/containers', icon: ServerStackIcon },
   { name: 'Users', href: '/admin/users', icon: UsersIcon },
   { name: 'Payments', href: '/admin/payments', icon: CreditCardIcon },
-  //{ name: 'Tickets', href: '/admin/tickets', icon: TicketIcon },
+  { name: 'Tickets', href: '/admin/tickets', icon: TicketIcon },
   { name: 'Packages', href: '/admin/packages', icon: CubeIcon },
   { name: 'GPU Management', href: '/admin/gpu', icon: CpuChipIcon },
   //{ name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon },
@@ -113,10 +113,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center gap-3">
-                    <Image 
-                      src="/ipb-logo.svg" 
-                      alt="IPB University" 
-                      width={40} 
+                    <Image
+                      src="/ipb-logo.svg"
+                      alt="IPB University"
+                      width={40}
                       height={40}
                       className="h-10 w-auto"
                     />
@@ -183,14 +183,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10"></div>
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
             <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-400/20 rounded-full blur-2xl animate-pulse animation-delay-2000"></div>
-            
+
             <div className="relative flex h-20 shrink-0 items-center gap-3 px-6 border-b border-blue-100/50">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl blur-lg opacity-25 animate-pulse"></div>
-                <Image 
-                  src="/ipb-logo.svg" 
-                  alt="IPB University" 
-                  width={45} 
+                <Image
+                  src="/ipb-logo.svg"
+                  alt="IPB University"
+                  width={45}
                   height={45}
                   className="h-11 w-auto relative z-10"
                 />
@@ -226,11 +226,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         `}
                       >
                         <item.icon
-                          className={`h-5 w-5 shrink-0 relative z-10 ${
-                            pathname === item.href 
-                              ? 'text-white' 
-                              : 'text-gray-500 group-hover:text-ipb-blue-600'
-                          }`}
+                          className={`h-5 w-5 shrink-0 relative z-10 ${pathname === item.href
+                            ? 'text-white'
+                            : 'text-gray-500 group-hover:text-ipb-blue-600'
+                            }`}
                           aria-hidden="true"
                         />
                         <span className="relative z-10">{item.name}</span>
@@ -251,7 +250,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="mt-auto border-t border-gray-200 bg-blue-50 p-4">
             <div className="relative">
               {/* User Card */}
-              <div 
+              <div
                 className="flex items-center gap-3 p-3 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
               >
@@ -321,7 +320,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="relative overflow-hidden">
             {/* Animated gradient line */}
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 animate-gradient"></div>
-            
+
             <div className="flex h-16 items-center gap-x-4 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
               <button
                 type="button"
@@ -344,7 +343,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Right side actions */}
                 <div className="flex items-center gap-x-3">
                   {/* Status badge */}
@@ -354,7 +353,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       {isAdmin ? 'Admin Mode' : 'User Mode'}
                     </span>
                   </div>
-                  
+
                   {/* Quick stats */}
                   <div className="hidden lg:flex items-center gap-4 px-4 py-2 bg-gray-50 rounded-xl">
                     <div className="text-center">
@@ -378,11 +377,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Subtle background pattern */}
           <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 via-white to-blue-50/30"></div>
           <div className="absolute inset-0 pattern-dots opacity-5"></div>
-          
+
           {/* Floating decorative elements */}
           <div className="absolute top-20 right-10 w-64 h-64 bg-blue-200/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 left-10 w-96 h-96 bg-purple-200/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative py-10">
             <div className="px-4 sm:px-6 lg:px-8">{children}</div>
           </div>

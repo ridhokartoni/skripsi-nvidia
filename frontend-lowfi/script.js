@@ -494,209 +494,338 @@ style.textContent = `
 
 document.head.appendChild(style);
 
-// Payment Page Specific Functions
+// Container Management Page Functions
 function setupPaymentPage() {
-    // Payment method selection
-    const paymentOptions = document.querySelectorAll('input[name="payment"]');
-    const cardDetailsSection = document.querySelector('.card-details');
-    
-    if (paymentOptions.length > 0 && cardDetailsSection) {
-        paymentOptions.forEach(option => {
-            option.addEventListener('change', function() {
-                // Show/hide card details based on payment method
-                if (this.value === 'card') {
-                    cardDetailsSection.style.display = 'block';
-                    animateSection(cardDetailsSection);
-                } else {
-                    cardDetailsSection.style.display = 'none';
-                }
-                
-                // Show notification for payment method change
-                const methodName = this.parentElement.querySelector('.option-text').textContent;
-                showNotification(`Payment method changed to ${methodName}`);
-            });
-        });
-    }
-    
-    // Form validation setup
-    setupFormValidation();
-    
-    // Card number formatting
-    const cardNumberInput = document.querySelector('.card-details input[placeholder="XXXX XXXX XXXX XXXX"]');
-    if (cardNumberInput) {
-        cardNumberInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\s/g, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
-        });
-    }
-    
-    // Expiry date formatting
-    const expiryInput = document.querySelector('.card-details input[placeholder="MM/YY"]');
-    if (expiryInput) {
-        expiryInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.slice(0, 2) + '/' + value.slice(2, 4);
-            }
-            e.target.value = value;
-        });
-    }
-    
-    // CVV input restriction
-    const cvvInput = document.querySelector('.card-details input[placeholder="XXX"]');
-    if (cvvInput) {
-        cvvInput.addEventListener('input', function(e) {
-            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 3);
-        });
-    }
+    // This function is now setupContainerManagement
+    setupContainerManagement();
 }
 
-function setupFormValidation() {
-    const formInputs = document.querySelectorAll('.form-input');
+function setupContainerManagement() {
+    // Setup container card interactions
+    const containerCards = document.querySelectorAll('.container-card:not(.empty-state)');
     
-    formInputs.forEach(input => {
-        input.addEventListener('blur', function() {
-            validateInput(this);
+    containerCards.forEach(card => {
+        // Add hover effect
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
         });
-    });
-}
-
-function validateInput(input) {
-    const value = input.value.trim();
-    
-    if (value === '') {
-        input.style.borderColor = '#ff5252';
-        showFieldError(input, 'This field is required');
-    } else {
-        input.style.borderColor = '#4caf50';
-        removeFieldError(input);
-    }
-    
-    // Email validation
-    if (input.type === 'email' && value !== '') {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) {
-            input.style.borderColor = '#ff5252';
-            showFieldError(input, 'Please enter a valid email');
-        }
-    }
-}
-
-function showFieldError(input, message) {
-    // Remove existing error if any
-    removeFieldError(input);
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'field-error';
-    errorDiv.textContent = message;
-    errorDiv.style.color = '#ff5252';
-    errorDiv.style.fontSize = '12px';
-    errorDiv.style.marginTop = '5px';
-    
-    input.parentElement.appendChild(errorDiv);
-}
-
-function removeFieldError(input) {
-    const existingError = input.parentElement.querySelector('.field-error');
-    if (existingError) {
-        existingError.remove();
-    }
-}
-
-function processPayment() {
-    // Validate all required fields
-    const requiredInputs = document.querySelectorAll('.payment-page .form-input');
-    let isValid = true;
-    
-    requiredInputs.forEach(input => {
-        if (input.value.trim() === '') {
-            validateInput(input);
-            isValid = false;
-        }
-    });
-    
-    if (isValid) {
-        // Show processing modal
-        showModal('Processing Payment', 'Your payment is being processed. Please wait...');
         
-        // Simulate payment processing
-        setTimeout(() => {
-            // Hide modal
-            const modal = document.querySelector('.modal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-            
-            // Show success notification
-            showSuccessAnimation();
-        }, 2000);
-    } else {
-        showNotification('Please fill in all required fields');
-    }
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+        
+        // Setup action buttons
+        const detailsBtn = card.querySelector('.btn-details');
+        const restartBtn = card.querySelector('.btn-restart');
+        const resetBtn = card.querySelector('.btn-reset');
+        const containerName = card.querySelector('.container-name').textContent;
+        const statusBadge = card.querySelector('.status-badge');
+        
+        if (detailsBtn) {
+            detailsBtn.addEventListener('click', function() {
+                showContainerDetails(containerName);
+            });
+        }
+        
+        if (restartBtn && !restartBtn.disabled) {
+            restartBtn.addEventListener('click', function() {
+                restartContainer(containerName, card);
+            });
+        }
+        
+        if (resetBtn && !resetBtn.disabled) {
+            resetBtn.addEventListener('click', function() {
+                resetContainer(containerName, card);
+            });
+        }
+        
+        // Copy password on click
+        const passwordBox = card.querySelector('.password-box');
+        if (passwordBox) {
+            passwordBox.style.cursor = 'pointer';
+            passwordBox.addEventListener('click', function() {
+                copyToClipboard(this.textContent);
+                showNotification('Password copied to clipboard!');
+            });
+        }
+    });
+    
+    // Setup request new container button
+    const requestBtns = document.querySelectorAll('.container-management .btn-primary');
+    requestBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            showModal('Request New Container', 'Select a package configuration for your new GPU container.');
+        });
+    });
+    
+    // Simulate real-time status updates
+    startStatusUpdates();
 }
 
-function showSuccessAnimation() {
-    // Create success overlay
-    const successOverlay = document.createElement('div');
-    successOverlay.className = 'success-overlay';
-    successOverlay.innerHTML = `
-        <div class="success-content">
-            <div class="success-icon">✓</div>
-            <h2>Payment Successful!</h2>
-            <p>Your order has been confirmed</p>
-            <p class="order-number">Order #${generateOrderNumber()}</p>
-            <button class="btn-primary" onclick="this.parentElement.parentElement.remove()">Continue Shopping</button>
+function showContainerDetails(containerName) {
+    const modal = document.createElement('div');
+    modal.className = 'container-details-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Container Details: ${containerName}</h2>
+                <span class="modal-close">×</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-section">
+                    <h3>Connection Information</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">SSH Command:</span>
+                        <code class="detail-code">ssh user@gpu-server.com -p 2201</code>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Jupyter URL:</span>
+                        <code class="detail-code">http://gpu-server.com:8888/lab</code>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <h3>Resource Usage</h3>
+                    <div class="usage-bar">
+                        <span class="usage-label">CPU Usage:</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 45%">45%</div>
+                        </div>
+                    </div>
+                    <div class="usage-bar">
+                        <span class="usage-label">Memory:</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 62%">62%</div>
+                        </div>
+                    </div>
+                    <div class="usage-bar">
+                        <span class="usage-label">GPU:</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 78%">78%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary">Open Terminal</button>
+                <button class="btn-secondary">View Logs</button>
+            </div>
         </div>
     `;
     
-    // Add styles
-    successOverlay.style.cssText = `
+    // Style the modal
+    modal.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.5);
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 3000;
+        z-index: 2000;
     `;
     
-    const successContent = successOverlay.querySelector('.success-content');
-    successContent.style.cssText = `
+    const modalContent = modal.querySelector('.modal-content');
+    modalContent.style.cssText = `
         background: white;
-        padding: 40px;
-        border-radius: 8px;
-        text-align: center;
-        animation: slideIn 0.5s ease;
+        width: 90%;
+        max-width: 600px;
+        border: 2px solid #333;
+        border-radius: 0;
+        max-height: 80vh;
+        overflow-y: auto;
     `;
     
-    const successIcon = successOverlay.querySelector('.success-icon');
-    successIcon.style.cssText = `
-        font-size: 60px;
-        color: #4caf50;
-        margin-bottom: 20px;
-        animation: scaleIn 0.5s ease;
-    `;
+    // Add close functionality
+    modal.querySelector('.modal-close').addEventListener('click', () => modal.remove());
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+    });
     
-    document.body.appendChild(successOverlay);
+    document.body.appendChild(modal);
+    
+    // Add styles for the modal
+    if (!document.querySelector('#container-modal-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'container-modal-styles';
+        styles.textContent = `
+            .container-details-modal .modal-header {
+                padding: 20px;
+                border-bottom: 2px solid #ddd;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #f5f5f5;
+            }
+            .container-details-modal .modal-close {
+                font-size: 28px;
+                cursor: pointer;
+                color: #999;
+            }
+            .container-details-modal .modal-body {
+                padding: 20px;
+            }
+            .detail-section {
+                margin-bottom: 25px;
+            }
+            .detail-section h3 {
+                font-size: 16px;
+                margin-bottom: 15px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: #666;
+            }
+            .detail-row {
+                margin-bottom: 10px;
+            }
+            .detail-label {
+                display: inline-block;
+                width: 120px;
+                font-weight: 600;
+                color: #666;
+            }
+            .detail-code {
+                background-color: #333;
+                color: #0f0;
+                padding: 5px 10px;
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+            }
+            .usage-bar {
+                margin-bottom: 15px;
+            }
+            .usage-label {
+                display: block;
+                margin-bottom: 5px;
+                font-size: 14px;
+                color: #666;
+            }
+            .progress-bar {
+                width: 100%;
+                height: 25px;
+                background-color: #f0f0f0;
+                border: 2px solid #ddd;
+                position: relative;
+            }
+            .progress-fill {
+                height: 100%;
+                background-color: #4caf50;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            .container-details-modal .modal-footer {
+                padding: 20px;
+                border-top: 2px solid #ddd;
+                display: flex;
+                gap: 10px;
+                background-color: #f5f5f5;
+            }
+        `;
+        document.head.appendChild(styles);
+    }
 }
 
-function generateOrderNumber() {
-    return 'ORD' + Math.random().toString(36).substr(2, 9).toUpperCase();
-}
-
-function animateSection(element) {
-    element.style.opacity = '0';
-    element.style.transform = 'translateY(20px)';
+function restartContainer(containerName, cardElement) {
+    const restartBtn = cardElement.querySelector('.btn-restart');
+    const originalText = restartBtn.innerHTML;
     
+    // Show loading state
+    restartBtn.innerHTML = '<span class="loading-spinner"></span> Restarting...';
+    restartBtn.disabled = true;
+    
+    // Simulate restart process
     setTimeout(() => {
-        element.style.transition = 'all 0.5s ease';
-        element.style.opacity = '1';
-        element.style.transform = 'translateY(0)';
-    }, 100);
+        showNotification(`Container ${containerName} restarted successfully`);
+        restartBtn.innerHTML = originalText;
+        restartBtn.disabled = false;
+        
+        // Update status to running
+        const statusBadge = cardElement.querySelector('.status-badge');
+        statusBadge.className = 'status-badge status-running';
+        statusBadge.textContent = '● Running';
+    }, 2000);
+}
+
+function resetContainer(containerName, cardElement) {
+    // Confirm reset
+    if (confirm(`Are you sure you want to reset ${containerName}? This will remove all data.`)) {
+        const resetBtn = cardElement.querySelector('.btn-reset');
+        const originalText = resetBtn.innerHTML;
+        
+        // Show loading state
+        resetBtn.innerHTML = '<span class="loading-spinner"></span> Resetting...';
+        resetBtn.disabled = true;
+        
+        // Simulate reset process
+        setTimeout(() => {
+            showNotification(`Container ${containerName} reset successfully`);
+            resetBtn.innerHTML = originalText;
+            resetBtn.disabled = false;
+            
+            // Update status
+            const statusBadge = cardElement.querySelector('.status-badge');
+            statusBadge.className = 'status-badge status-creating';
+            statusBadge.textContent = '● Creating';
+            
+            // After a delay, set to running
+            setTimeout(() => {
+                statusBadge.className = 'status-badge status-running';
+                statusBadge.textContent = '● Running';
+            }, 3000);
+        }, 2000);
+    }
+}
+
+function copyToClipboard(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+}
+
+function startStatusUpdates() {
+    // Simulate real-time status updates
+    setInterval(() => {
+        const stats = document.querySelectorAll('.stat-value');
+        if (stats.length > 0) {
+            // Update GPU usage randomly
+            const gpuStat = stats[3];
+            if (gpuStat && gpuStat.textContent.includes('GPU')) {
+                const currentGPUs = Math.floor(Math.random() * 5) + 1;
+                gpuStat.textContent = `${currentGPUs}/8 GPUs`;
+            }
+        }
+    }, 5000);
+    
+    // Add spinner styles if not already added
+    if (!document.querySelector('#spinner-styles')) {
+        const spinnerStyle = document.createElement('style');
+        spinnerStyle.id = 'spinner-styles';
+        spinnerStyle.textContent = `
+            .loading-spinner {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border: 2px solid #ddd;
+                border-top-color: #333;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+            }
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(spinnerStyle);
+    }
 }
 
 // Add animation keyframes
